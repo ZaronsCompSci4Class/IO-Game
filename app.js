@@ -10,7 +10,7 @@ app.use('/client', express.static(__dirname + '/client'));
 serv.listen(process.env.PORT || 2000);
 console.log("Server started.");
 
-//gets collision map and reads it into collisionText
+//gets collision map and reads it into collisionText String
 var fs = require("fs");
 var collisionText = fs.readFileSync(__dirname + '/bin/collisionMap.txt', "utf-8");
 
