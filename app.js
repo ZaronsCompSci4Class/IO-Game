@@ -36,7 +36,7 @@ function Entity(param) {
 	        }
 	    } while (this.collision);
 	    //declares all the this variables for all entities
-	    //randomly generated spawn
+	    //randomly generated spawn.
 	    this.x = spawnX;
 	    this.y = spawnY;
 	    this.id = "";
