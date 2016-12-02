@@ -56,6 +56,7 @@ function Entity(param) {
     this.updatePosition = function() {
         this.x += this.spdX;
         this.y += this.spdY;
+        this.drawOverWall = this.isAboveWall();
     }
     this.getDistance = function(pt) {
         return Math.sqrt(Math.pow(this.x - pt.x, 2) + Math.pow(this.y - pt.y, 2));
@@ -69,11 +70,11 @@ function Entity(param) {
 
         //checks within map array at each of the four corners
         //checks right side
-        if(this.getCollisionWithMap(x - PimgW, y - PimgH) || this.getCollisionWithMap(x - PimgW, y) || this.getCollisionWithMap(x - PimgW, y + PimgH)) {
+        if(this.getCollisionWithMap(x - PimgW, y - , "1") || this.getCollisionWithMap(x - PimgW, y, "1") || this.getCollisionWithMap(x - PimgW, y + PimgH, "1")) {
             return true;
-        }else if(this.getCollisionWithMap(x + PimgW, y - PimgH) || this.getCollisionWithMap(x + PimgW, y) || this.getCollisionWithMap(x + PimgW, y + PimgH)) {
+        }else if(this.getCollisionWithMap(x + PimgW, y - PimgH, "1") || this.getCollisionWithMap(x + PimgW, y, "1") || this.getCollisionWithMap(x + PimgW, y + PimgH, "1")) {
             return true;
-        }else if(this.getCollisionWithMap(x, y - PimgH) || this.getCollisionWithMap(x, y) || this.getCollisionWithMap(x, y + PimgH)) {
+        }else if(this.getCollisionWithMap(x, y - PimgH, "1") || this.getCollisionWithMap(x, y, "1") || this.getCollisionWithMap(x, y + PimgH, "1")) {
             return true;
         }
 
@@ -92,15 +93,22 @@ function Entity(param) {
         return false;
     }
 
-    this.getCollisionWithMap = function(x,y) {
+    this.getCollisionWithMap = function(x, y, charLookingFor) {
         //gets collision index with map collisionText
         var xCU = Math.floor(x / pixelsPerCU);
         var yCU = Math.floor(y / pixelsPerCU);
         var index = yCU * 128 + xCU;
-        if(collisionText.charAt(index) == "1")
+        if(collisionText.charAt(index) == charLookingFor)
             return true;
         else
             return false;
+    }
+
+    this.isAboveWall = function() {
+        if(this.getCollisionWithMap(this.x, this.y, "2")) {
+            return true;
+        }
+        return false;
     }
 
     return this;
@@ -128,6 +136,7 @@ var Player = function(param) {
     self.update = function() {
         self.updateSpd();
         self.updatePosition();
+        self.isAboveWall = this.isAboveWall
         //shots if mouse if pressed and round has started
         if (self.pressingAttack && !self.isZombie) {
             self.shootBullet(self.mouseAngle);
