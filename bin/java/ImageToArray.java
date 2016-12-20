@@ -30,10 +30,10 @@ public class ImageToArray
                         //sets black areas to uncollidable
                         strB.append(1);
                         img.setRGB(j,i,-16777216);
-                    }else if(pixColor.getRGB() == -5395027){
-                        //sets grey areas to special overlapping
+                    }else if(pixColor.getRGB() == -16711936){
+                        //sets green areas to special overlapping
                         strB.append(2);
-                        img.setRGB(j,i,-5395027);
+                        img.setRGB(j,i,-16711936);
                     }else{
                         //sets white areas to nothing
                         strB.append(0);
