@@ -39,7 +39,7 @@ storeButton.onclick = function(){
 			storeMenu.style.display = 'none';
 		}
 	}
-	
+
 sb1.onclick = function(){
 	if(Player.list[selfId].score >= 0){
 		socket.emit('updateScore', Player.list[selfId].score-0);
@@ -108,8 +108,10 @@ Img.miniMap.src = '/client/img/miniMap.png';
 Img.map = {};
 Img.map.floor = new Image();
 Img.map.floor.src = '/client/img/floor.png';
-Img.map.walls = new Image();
-Img.map.walls.src = '/client/img/walls.png';
+Img.map.wallsTop = new Image();
+Img.map.wallsTop.src = '/client/img/wallsTop.png';
+Img.map.wallsBottom = new Image();
+Img.map.wallsBottom.src = 'client/img/wallsBottom.png';
 
 function Entity() {
     this.init = function(initPack, imgParam) {
@@ -183,7 +185,7 @@ var Player = function(initPack) {
 			var imgPicker = Img.playerSprite;
 		ctx.drawImage(imgPicker, moveMod * self.spriteW, directionMod * self.spriteH, self.spriteW, self.spriteH, self.relativeX - self.width / 2, self.relativeY - self.height / 2, self.width, self.height);
     }
-    
+
     self.drawDot = function() {
         if(self.id == selfId)
 		    var dotPicker = Img.pDot;
@@ -193,7 +195,7 @@ var Player = function(initPack) {
 		    var dotPicker = Img.fDot;
 		ctxMini.drawImage(dotPicker, 0, 0, dotPicker.width, dotPicker.height, ctxMiniX+self.x/20.48, ctxMiniY+self.y/20.48,dotPicker.width,dotPicker.height);
     }
-    
+
     self.drawAttributes = function() {
         //draw health bar
         var hpWidth = 30 * self.hp / self.hpMax;
@@ -226,10 +228,10 @@ var Bullet = function(initPack) {
     self.drawSelf = function() {
 			var width = Img.bullet.width/2;
 			var height = Img.bullet.height/2;
-			
+
 			var x = self.x - Player.list[selfId].x + canvasWidth/2;
 			var y = self.y - Player.list[selfId].y + canvasHeight/2;
-			
+
 			ctx.drawImage(Img.bullet,
 				0,0,Img.bullet.width,Img.bullet.height,
 				x-width/2,y-height/2,width,height);
@@ -246,10 +248,10 @@ var Objective = function(initPack) {
     self.drawSelf = function() {
         var width = Img.obj.width/2;
 		var height = Img.obj.height/2;
-			
+
 		var x = self.x - Player.list[selfId].x + canvasWidth/2;
 		var y = self.y - Player.list[selfId].y + canvasHeight/2;
-			
+
         ctx.drawImage(Img.obj, 0, 0, Img.obj.width, Img.obj.height, x - self.width / 2, y - self.height / 2, self.width, self.height);
         ctxMini.drawImage(Img.oDot, 0, 0, Img.oDot.width, Img.oDot.height, ctxMiniX+self.x/20.48, ctxMiniY+self.y/20.48,Img.oDot.width,Img.oDot.height);
     }
@@ -373,7 +375,7 @@ function draw() {
             Player.list[i].draw("self");
         }
     }
-    drawMap('walls');
+    drawMap('wallsBottom');
     drawMiniMap();
     drawScore();
     drawTime();
@@ -402,7 +404,7 @@ var drawTime = function(){
 		roundPharse = 'Review Scores! ' + (10 - time);
 		partTime = 0;
 	}
-	
+
 	if(!displayEnd){
 		if(ctxDiv.style.display == 'block'){
 		ctxDiv.style.display = 'none';

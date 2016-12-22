@@ -22,6 +22,22 @@ var mapWidth = 2048;
 var mapHeight = 2048;
 const pixelsPerCU = 16;
 
+var objectiveSpawnList = [];
+
+init();
+
+function init() {
+    var j = 0;
+    for(var i = 0; i < collisionText.length; i++){
+        if(collisionText.charAt(i) == '2'){
+            objectiveSpawnList[j] = [];
+            objectiveSpawnList[j][0] = (i % 128) * 16;
+            objectiveSpawnList[j][1] = Math.floor(i / 128) * 16;
+            j++;
+        }
+    }
+}
+
 function Entity(param) {
     //detects if there is a collision with any player and only spawns when there is no collision
     this.init = function() {
@@ -81,7 +97,7 @@ function Entity(param) {
         var xCU = Math.floor(x / pixelsPerCU);
         var yCU = Math.floor(y / pixelsPerCU);
         var index = yCU * 128 + xCU;
-        if (collisionText.charAt(index) == "1")
+        if (collisionText.charAt(index) === "1" || collisionText.charAt(index) === "3")
             return true;
         else
             return false;
@@ -130,7 +146,7 @@ var Player = function(param) {
     self.update = function() {
         self.updateSpd();
         self.updatePosition();
-        
+
         //shots if mouse if pressed and round has started and reload time //***********remember to add only shoot at the start of the round
         if (self.pressingAttack && !self.isZombie ){
             if(self.partTimer == 0){
@@ -179,7 +195,7 @@ var Player = function(param) {
         else
             self.spdY = 0;
 
-        //counters movement and sets animCounter = to it 
+        //counters movement and sets animCounter = to it
         if (self.spdY != 0 || self.spdX != 0)
             self.animCounter += 0.2;
         if (self.animCounter > 3)
@@ -330,7 +346,7 @@ var Bullet = function(param) {
             console.log("as");
         }
     }
-    
+
     self.checkForCollision = function(x,y){
         if (x < 0 || x + 10 > mapWidth || y < 0 || y + 10 > mapHeight)
             return true;
@@ -348,7 +364,7 @@ var Bullet = function(param) {
             }
         }
     }
-    
+
     self.getInitPack = function() {
         return {
             id: self.id,
@@ -392,16 +408,22 @@ Bullet.getAllInitPack = function() {
         return bullets;
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var Objective = function(param) {
-    var self = new Entity(param);
+var Objective = function() {
+    var self = new Entity();
     self.id = Math.random();
     self.init();
-    self.x = 1064;
-    self.y = 1024;
     self.timer = time;
     self.toRemove = false;
     self.w = (75/2);
     self.h = (75/2);
+
+    self.spawn = function() {
+        var seed = Math.floor(Math.random() * objectiveSpawnList.length);
+        self.x = objectiveSpawnList[seed][0];
+        self.y = objectiveSpawnList[seed][1];
+    }
+
+    self.spawn();
 
     self.update = function() {
         if (time - self.timer >= 20)
@@ -472,12 +494,11 @@ var DISCONECTED_LIST = [];
 var io = require('socket.io')(serv, {});
 io.sockets.on('connection', function(socket) {
     socket.id = counter + 1;
+    counter++;
     SOCKET_LIST[socket.id] = socket;
 
     socket.on('signIn', function(data) {
         NAMES_LIST[socket.id] = data;
-        counter++;
-        pCounter++;
         Player.onConnect(socket);
         socket.emit('signInResponse', { success: true });
 
@@ -526,7 +547,7 @@ function gameTimer() {
         if (time >= 15 && !roundStarted) { ////////////starts the game after 15 sec prep
             resetTime();
             roundStarted = !roundStarted;
-            Obj();
+            Objective();
             if (pCounter >= 1)
                 pickZombie();
         } else if (displayEnd && time >= 10) { ////////////displays after end of round score
@@ -590,10 +611,6 @@ function resetZombie() {
         p.hp = p.hpMax;
     }
     allZombies = false;
-}
-
-var Obj = function() {
-    Objective();
 }
 
 setInterval(function() {

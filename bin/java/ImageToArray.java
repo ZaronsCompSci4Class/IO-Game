@@ -26,18 +26,24 @@ public class ImageToArray
                 stringIndex = width * i;
                 for(int j = 0; j < width; j++){
                     pixColor = new Color(img.getRGB(j,i));
-                    if(pixColor.getRGB() == -16777216){
-                        //sets black areas to uncollidable
-                        strB.append(1);
-                        img.setRGB(j,i,-16777216);
-                    }else if(pixColor.getRGB() == -16711936){
-                        //sets green areas to special overlapping
-                        strB.append(2);
-                        img.setRGB(j,i,-16711936);
-                    }else{
+                    if(pixColor.getRGB() == -1){
                         //sets white areas to nothing
                         strB.append(0);
                         img.setRGB(j,i,-1);
+                    }else if(pixColor.getRGB() == -16777216){
+                        //sets black areas to uncollidable
+                        strB.append(1);
+                        img.setRGB(j,i,-16777216);
+                    }else if(pixColor.getRGB() == -16776961){
+                        //sets blue areas to objective spawns
+                        strB.append(2);
+                        img.setRGB(j,i,-16776961);
+                    }else if(pixColor.getRGB() == -16711936){
+                        //sets green areas to entities
+                        strB.append(3);
+                        img.setRGB(j,i,-16711936);
+                    }else{
+                        System.out.println(pixColor.getRGB());
                     }
                 }
             }
