@@ -1,17 +1,11 @@
-html,
 body {
-    display: block;
-    width: 100%;
-    height: 100%;
     margin: 0 auto;
     overflow: hidden;
 }
 
 object {
     width: 100%;
-    height: 100%;
 }
-
 
 #signDivChild {
     background: #119305;
@@ -28,7 +22,6 @@ object {
     position: absolute;
     top: 5%;
     left: 10%;
-
 }
 
 #signDiv-signIn {

@@ -20,20 +20,27 @@ var PimgW = 18 / 2;
 var PimgH = 20 / 2;
 var mapWidth = 2048;
 var mapHeight = 2048;
+const collisionMapSize = 128;
 const pixelsPerCU = 16;
 
 var objectiveSpawnList = [];
-
+var objectList = [];
 init();
-
 function init() {
-    var j = 0;
-    for(var i = 0; i < collisionText.length; i++){
-        if(collisionText.charAt(i) == '2'){
-            objectiveSpawnList[j] = [];
-            objectiveSpawnList[j][0] = (i % 128) * 16;
-            objectiveSpawnList[j][1] = Math.floor(i / 128) * 16;
-            j++;
+    //fill objectiveSpawnList
+    fillArray(objectiveSpawnList, '2');
+    //fill objectList (trees)
+    fillArray(objectList, '3');
+
+    function fillArray(array, charLookingFor) {
+        var j = 0;
+        for(var i = 0; i < collisionText.length; i++){
+            if(collisionText.charAt(i) === charLookingFor){
+                array[j] = [];
+                array[j][0] = (i % collisionMapSize) * pixelsPerCU;
+                array[j][1] = Math.floor(i / collisionMapSize) * pixelsPerCU;
+                j++;
+            }
         }
     }
 }
@@ -96,7 +103,7 @@ function Entity(param) {
         //gets collision index with map collisionText
         var xCU = Math.floor(x / pixelsPerCU);
         var yCU = Math.floor(y / pixelsPerCU);
-        var index = yCU * 128 + xCU;
+        var index = yCU * collisionMapSize + xCU;
         if (collisionText.charAt(index) === "1" || collisionText.charAt(index) === "3")
             return true;
         else
