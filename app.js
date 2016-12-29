@@ -24,25 +24,10 @@ const collisionMapSize = 128;
 const pixelsPerCU = 16;
 
 var objectiveSpawnList = [];
-var objectList = [];
+var initResources = {};
 init();
 function init() {
-    //fill objectiveSpawnList
-    fillArray(objectiveSpawnList, '2');
-    //fill objectList (trees)
-    fillArray(objectList, '3');
 
-    function fillArray(array, charLookingFor) {
-        var j = 0;
-        for(var i = 0; i < collisionText.length; i++){
-            if(collisionText.charAt(i) === charLookingFor){
-                array[j] = [];
-                array[j][0] = (i % collisionMapSize) * pixelsPerCU;
-                array[j][1] = Math.floor(i / collisionMapSize) * pixelsPerCU;
-                j++;
-            }
-        }
-    }
 }
 
 function Entity(param) {
@@ -111,7 +96,7 @@ function Entity(param) {
     }
 
     this.isAboveWall = function() {
-        if (this.getCollisionWithMap(this.x - PimgW, this.y - PimgH - 5, "2") || this.getCollisionWithMap(this.x + PimgW, this.y - PimgH - 5, "2") || this.getCollisionWithMap(this.x - PimgW, this.y, "2") || this.getCollisionWithMap(this.x + PimgW, this.y, "2") || this.getCollisionWithMap(this.x, this.y - PimgH - 5, "2")) {
+        if (this.getCollisionWithMap(this.x - PimgW, this.y - PimgH - 5, "1") || this.getCollisionWithMap(this.x + PimgW, this.y - PimgH - 5, "1") || this.getCollisionWithMap(this.x - PimgW, this.y, "1") || this.getCollisionWithMap(this.x + PimgW, this.y, "1") || this.getCollisionWithMap(this.x, this.y - PimgH - 5, "1")) {
             return true;
         }
         return false;
@@ -425,9 +410,8 @@ var Objective = function() {
     self.h = (75/2);
 
     self.spawn = function() {
-        var seed = Math.floor(Math.random() * objectiveSpawnList.length);
-        self.x = objectiveSpawnList[seed][0];
-        self.y = objectiveSpawnList[seed][1];
+        self.x = 1;
+        self.y = 1;
     }
 
     self.spawn();
@@ -479,7 +463,7 @@ Objective.update = function() {
         if (obj.toRemove) {
             delete Objective.list[i];
             removePack.obj.push(obj.id);
-            console.log("obj has been removeed");
+            console.log("obj has been removed");
         } else
             pack.push(obj.getUpdatePack());
     }
@@ -508,7 +492,7 @@ io.sockets.on('connection', function(socket) {
         NAMES_LIST[socket.id] = data;
         Player.onConnect(socket);
         socket.emit('signInResponse', { success: true });
-
+        socket.emit('initResources', initResources);
     });
 
     socket.on('disconnect', function() {

@@ -1,3 +1,5 @@
+var socket = io();
+
 //connecting page elements
 var canvas = document.getElementById("ctx");
 var ctx = canvas.getContext("2d");
@@ -105,4 +107,7 @@ Img.map.floor.src = '/client/img/floor.png';
 Img.map.wallsTop = new Image();
 Img.map.wallsTop.src = '/client/img/wallsTop.png';
 Img.map.wallsBottom = new Image();
-Img.map.wallsBottom.src = 'client/img/wallsBottom.png';
+Img.map.wallsBottom.src = '/client/img/wallsBottom.png';
+Img.statics = {};
+Img.statics.treeSprite = new Image();
+Img.statics.treeSprite.src = '/client/img/treeSprite.png';
