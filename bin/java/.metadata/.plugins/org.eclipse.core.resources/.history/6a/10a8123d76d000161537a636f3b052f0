@@ -1,0 +1,33 @@
+
+public class mListener {
+	public static void main (String[] args) {
+		private class MyListener extends MouseInputAdapter {
+		    public void mousePressed(MouseEvent e) {
+		        int x = e.getX();
+		        int y = e.getY();
+		        currentRect = new Rectangle(x, y, 0, 0);
+		        updateDrawableRect(getWidth(), getHeight());
+		        repaint();
+		    }
+
+		    public void mouseDragged(MouseEvent e) {
+		        updateSize(e);
+		    }
+
+		    public void mouseReleased(MouseEvent e) {
+		        updateSize(e);
+		    }
+
+		    void updateSize(MouseEvent e) {
+		        int x = e.getX();
+		        int y = e.getY();
+		        currentRect.setSize(x - currentRect.x,
+		                            y - currentRect.y);
+		        updateDrawableRect(getWidth(), getHeight());
+		        Rectangle totalRepaint = rectToDraw.union(previouseRectDrawn); 
+		        repaint(totalRepaint.x, totalRepaint.y,
+		                totalRepaint.width, totalRepaint.height);
+		    }
+		}
+	}
+}

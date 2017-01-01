@@ -1,0 +1,8 @@
+import javax.swing.Timer;
+
+public class ObjectMapperTester {
+	public static void main (String[] args) {
+		ObjectMapper om = new ObjectMapper();
+		Timer t = new Timer(50, om.repaint());
+	}
+}
