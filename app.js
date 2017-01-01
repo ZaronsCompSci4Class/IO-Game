@@ -26,6 +26,7 @@ const pixelsPerCU = 16;
 var objectiveSpawnList = [];
 var initResources = {};
 init();
+
 function init() {
 
 }
@@ -124,11 +125,11 @@ var Player = function(param) {
     self.skins = "reg";
     self.bCounter = 20;
     self.reloadTime = 5;
-    self.timeBetweenBullets = 25/6.25; //.25 seconds calculated by taking 25 fps / 6.25 = 4 so its 1/4 of a second
+    self.timeBetweenBullets = 25 / 6.25; //.25 seconds calculated by taking 25 fps / 6.25 = 4 so its 1/4 of a second
     self.partTimer = 0;
     self.timer = 0;
-    self.hasMag = true;////////////ammo in a clip
-    self.hasAmmo = true;/////////////havent used/ limits total ammo
+    self.hasMag = true; ////////////ammo in a clip
+    self.hasAmmo = true; /////////////havent used/ limits total ammo
     //randomly generated spawn.
     do {
         self.x = ((mapWidth - 100) - 100 + 1) * Math.random() + 100;
@@ -140,24 +141,24 @@ var Player = function(param) {
         self.updatePosition();
 
         //shots if mouse if pressed and round has started and reload time //***********remember to add only shoot at the start of the round
-        if (self.pressingAttack && !self.isZombie ){
-            if(self.partTimer == 0){
+        if (self.pressingAttack && !self.isZombie) {
+            if (self.partTimer == 0) {
                 self.partTimer = partTime;
             }
-            if(self.hasMag && self.hasAmmo && partTime - self.partTimer >= self.timeBetweenBullets) {
+            if (self.hasMag && self.hasAmmo && partTime - self.partTimer >= self.timeBetweenBullets) {
                 self.bCounter--;
                 self.partTimer = 0;
                 self.shootBullet(self.mouseAngle);
-                if(self.bCounter == 0){
+                if (self.bCounter == 0) {
                     self.hasMag = false;
                     self.timer = time;
                 }
             }
-        }else if(self.timer != 0 && self.bCounter == 0 &&time - self.timer >= self.reloadTime ){
-                self.hasMag = true;
-                self.bCounter = 20;
-                self.timer = 0;
-            }
+        } else if (self.timer != 0 && self.bCounter == 0 && time - self.timer >= self.reloadTime) {
+            self.hasMag = true;
+            self.bCounter = 20;
+            self.timer = 0;
+        }
     }
     self.shootBullet = function(angle) {
         Bullet({
@@ -333,13 +334,13 @@ var Bullet = function(param) {
                 self.toRemove = true;
             }
         }
-        if(self.checkForCollision(self.x, self.y)){
+        if (self.checkForCollision(self.x, self.y)) {
             self.toRemove = true;
             console.log("as");
         }
     }
 
-    self.checkForCollision = function(x,y){
+    self.checkForCollision = function(x, y) {
         if (x < 0 || x + 10 > mapWidth || y < 0 || y + 10 > mapHeight)
             return true;
 
@@ -406,8 +407,8 @@ var Objective = function() {
     self.init();
     self.timer = time;
     self.toRemove = false;
-    self.w = (75/2);
-    self.h = (75/2);
+    self.w = (75 / 2);
+    self.h = (75 / 2);
 
     self.spawn = function() {
         self.x = 1;
@@ -425,7 +426,7 @@ var Objective = function() {
             if (!p.isZombie) {
                 if (self.x - self.w < p.x + PimgW && self.x + self.w > p.x - PimgW && self.y - self.h < p.y + PimgH && self.y + self.h > p.y - PimgH && Player.list[this.id] != Player.list[i]) {
                     console.log("gem detected");
-                    p.score +=10;
+                    p.score += 10;
                     self.toRemove = true;
                 }
             }
@@ -491,7 +492,9 @@ io.sockets.on('connection', function(socket) {
     socket.on('signIn', function(data) {
         NAMES_LIST[socket.id] = data;
         Player.onConnect(socket);
-        socket.emit('signInResponse', { success: true });
+        socket.emit('signInResponse', {
+            success: true
+        });
         socket.emit('initResources', initResources);
     });
 
@@ -520,8 +523,16 @@ io.sockets.on('connection', function(socket) {
 
 });
 
-var initPack = { player: [], bullet: [], obj: [] };
-var removePack = { player: [], bullet: [], obj: [] };
+var initPack = {
+    player: [],
+    bullet: [],
+    obj: []
+};
+var removePack = {
+    player: [],
+    bullet: [],
+    obj: []
+};
 ///////////////Time
 var partTime = 0;
 var time = 0;
@@ -574,7 +585,7 @@ function resetTime() {
     time = 0;
 }
 
-function resetPartTime(){
+function resetPartTime() {
     partTime = 0;
 }
 
@@ -618,7 +629,11 @@ setInterval(function() {
         socket.emit('init', initPack);
         socket.emit('update', pack);
         socket.emit('remove', removePack);
-        socket.emit('roundInfo', { timer: time, roundStarter: roundStarted, displayEnder: displayEnd });
+        socket.emit('roundInfo', {
+            timer: time,
+            roundStarter: roundStarted,
+            displayEnder: displayEnd
+        });
     }
     initPack.player = [];
     initPack.bullet = [];
