@@ -36,6 +36,10 @@ jspm_packages
 # Optional REPL history
 .node_repl_history
 
-# Editor
-*.sublime-workspace
-*.sublime-project
+# Eclipse Workspace
+.classpath
+.project
+.metadata
+.settings
+
+
