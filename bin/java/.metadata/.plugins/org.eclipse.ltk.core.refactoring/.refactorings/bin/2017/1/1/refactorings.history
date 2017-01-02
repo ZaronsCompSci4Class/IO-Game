@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Extract local variable &apos;read&apos; from expression &apos;ImageIO.read(new File(&quot;../objectMap.png&quot;))&apos;&#x0A;- Original project: &apos;bin&apos;&#x0A;- Variable name: &apos;read&apos;&#x0A;- Destination method: &apos;ObjectMapper.init()&apos;&#x0A;- Variable expression: &apos;ImageIO.read(new File(&quot;../objectMap.png&quot;))&apos;&#x0A;- Replace occurrences of expression with variable" description="Extract local variable &apos;read&apos;" final="false" id="org.eclipse.jdt.ui.extract.temp" input="/src&lt;{ObjectMapper.java" name="read" replace="true" selection="426 42" stamp="1483297968992" version="1.0"/>
-</session>
