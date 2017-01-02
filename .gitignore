@@ -39,7 +39,7 @@ jspm_packages
 # Eclipse Workspace
 .classpath
 .project
-.metadata
+.metadata/
 .settings
 
 
