@@ -15,7 +15,7 @@ public class ImageToArray
     public static void main (String[] args) {
         BufferedImage img = null;
         try {
-            img = ImageIO.read(new File("../../collisionMap.png"));
+            img = ImageIO.read(new File("../collisionMap.png"));
             int height = img.getHeight();
             int width = img.getWidth();
             int stringIndex = 0;
@@ -48,7 +48,7 @@ public class ImageToArray
                 }
             }
             try {
-            	PrintStream out = new PrintStream(new FileOutputStream("../../collisionMap.txt"));
+            	PrintStream out = new PrintStream(new FileOutputStream("../collisionMap.txt"));
                 out.print(strB.toString());
                 out.flush();
                 out.close();
