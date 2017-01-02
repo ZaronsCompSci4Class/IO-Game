@@ -38,7 +38,5 @@ node_modules
 # Eclipse Workspace
 .classpath
 .project
-.metadata/*
-.settings/*
-
-
+.metadata
+.settings
