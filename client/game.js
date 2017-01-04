@@ -100,6 +100,12 @@ var Player = function(initPack) {
     return self;
 }
 Player.list = {};
+
+////////////////////////////////////////////////////////////////////////////////
+var bulletSound = new beepbox.Synth("5s0kbl00e01t7a3g01j7i0r1w1111f0000d1111c0000h0000v0000o3210b4h4h4gp1o0000Fw0kkkkkkkkkkkkkkk00");
+//var mainSong=new beepbox.Synth("5s5kbl00e0ftba7g0fjni0r1w1811f3500d1110c0000h6000v0203o3210b28p2CexaBI003gx24gx16c9002k8h3248gx240gA24gMx288gx249wp27KFzO62F3jjiP7B74ap6QtmMdas-kCv0qdSCGKTdSVRRlRlRdRtdqqffqSMSmQRlSSFF_pftkXPUVcerGqrHGGGKd1tjljUDyYSaaaqGVejwaK_CmTgk39SmTTYlnjvrjnnTdSiA92CGKSW_9GZjjJlkM450Mldlv9OGGqGHeaHFHGGIGwWE6G0GYjIk4qqGXbrHV2hSS-4PAmSmimjeltjnPv2a0AaF6GDxjfw83Jg05d74AkPWj7Fcexrh7N5dn05dddlszOWcyyKKKiAaqG-rrJrlY5lpKjvK000aos0E1g2w50a0k0E1g2w50a0k0E1g2w6A50a0k0E1g2w50a0k0E1g2w50a0k0QwE1g2w50a0k0E1g2w50a0k0E1g2w4TFDQ000mowfzj4CAd8qqgQkQQ1QQQkkQQkkzFO98Tcg12ILG-GgPIXeSLGKPIXeSLAQyxu8HHGGGGGGGGGGjh8VBoqaqgQkQxEFF3hdWpA0000");
+//mainSong.play();
+
 ////////////////////////////////////////////////////////////////////////////////
 
 var Bullet = function(initPack) {
