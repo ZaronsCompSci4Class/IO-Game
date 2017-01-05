@@ -95,6 +95,8 @@ Img.bullet = new Image();
 Img.bullet.src = '/client/img/bullet.png';
 Img.obj = new Image();
 Img.obj.src = '/client/img/obj.png';
+Img.pwrSprite = new Image();
+Img.pwrSprite.src = '/client/img/Powerups.png';
 Img.pDot = new Image();
 Img.pDot.src = '/client/img/playerDot.png';
 Img.oDot = new Image();
@@ -152,7 +154,11 @@ var Player = function(initPack) {
     self.skins = initPack.skins;
     self.bCounter = initPack.bCounter;
     self.partTimer = 0;
-
+    ///powerups
+    self.bulletFrenzy = false;
+    self.oneHitKill = false;
+    self.activePwrs = [];
+    self.numOfPwrs = 0;
     ///////////////sprite///////////////////
     self.spriteW = Img.playerSprite.width / 4;
     self.spriteH = Img.playerSprite.height / 4;
@@ -181,6 +187,7 @@ var Player = function(initPack) {
 			var imgPicker = Img.harambeSprite;
 		else
 			var imgPicker = Img.playerSprite;
+		
 		ctx.drawImage(imgPicker, moveMod * self.spriteW, directionMod * self.spriteH, self.spriteW, self.spriteH, self.relativeX - self.width / 2, self.relativeY - self.height / 2, self.width, self.height);
     }
     
@@ -206,9 +213,43 @@ var Player = function(initPack) {
                 self.partTimer = partTime;
             }else{
                 ctx.fillStyle = 'red';
-                ctx.fillRect(canvasWidth*.98,canvasHeight*.975, canvasWidth*.015,-(canvasHeight/21)*4*((partTime - self.partTimer)*.04));
-                //ctx.fillRect(canvasWidth*.98,canvasHeight*.025 ,canvasWidth*.015, (partTime - partTimer));
+                if(self.bulletFrenzy)
+                    ctx.fillRect(canvasWidth*.98,canvasHeight*.975, canvasWidth*.015,-(canvasHeight/21)*4*((partTime - self.partTimer)*.04)*2);
+                else
+                    ctx.fillRect(canvasWidth*.98,canvasHeight*.975, canvasWidth*.015,-(canvasHeight/21)*4*((partTime - self.partTimer)*.04));
             }
+        
+            ////////drawing powerup
+            if(self.bulletFrenzy)
+                self.activePwrs[0] = true;
+            else
+                self.activePwrs[0] = false;
+            if(self.oneHitKill)
+                self.activePwrs[1] = true;
+            else
+                self.activePwrs[1] = false;
+            
+            self.numOfPwrs = 0;
+            for(var i in self.activePwrs){
+                if(self.activePwrs[i])
+                    self.numOfPwrs++;
+            }
+            console.log(self.numOfPwrs);
+        
+		    var pwrXMod;
+		    var pwrYMod;
+		    if(self.bulletFrenzy){
+		        pwrXMod = 0;
+		        pwrYMod = 0;
+		    }
+		    if(self.oneHitKill){
+		        pwrXMod = Img.pwrSprite/3*2;
+		        pwrYMod = Img.pwrSprite/2;
+		    }
+		    if(self.numOfPwrs >= 1){
+		        ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, Img.pwrSprite.width/3, Img.pwrSprite.height/2, ctxMiniX-(Img.pwrSprite.width/3)*self.numOfPwrs, ctxMiniY, Img.pwrSprite.width/3, Img.pwrSprite.height/2);
+		        console.log("x "+ ctxMiniX-(Img.pwrSprite.width/3)*self.numOfPwrs);
+		    }
         }
     }
 
@@ -244,8 +285,6 @@ var Objective = function(initPack) {
     var self = new Entity();
     self.init(initPack, Img.obj);
     self.drawSelf = function() {
-        var width = Img.obj.width/2;
-		var height = Img.obj.height/2;
 			
 		var x = self.x - Player.list[selfId].x + canvasWidth/2;
 		var y = self.y - Player.list[selfId].y + canvasHeight/2;
@@ -259,6 +298,37 @@ var Objective = function(initPack) {
 }
 Objective.list = {};
 
+////////////////////////////////////////////////////////////////////////////////
+var Powerup = function(initPack) {
+    var self = new Entity();
+    self.init(initPack, Img.pwrSprite);
+    self.drawSelf = function() {
+			
+		var x = self.x - Player.list[selfId].x + canvasWidth/2;
+		var y = self.y - Player.list[selfId].y + canvasHeight/2;
+		
+		//var pwrPicker;
+		//if(self.bulletFrenzy)
+		
+		var pwrXMod = 0;
+		var pwrYMod = 0;
+		if(self.bulletFrenzy){
+	        pwrXMod = 0;
+	        pwrYMod = 0;
+		}
+		if(self.oneHitKill){
+		    pwrXMod = Img.pwrSprite/3*2;
+		    pwrYMod = Img.pwrSprite/2;
+		}
+		ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod,self.width/3,self.height/2, x - self.width /3 / 2, y - self.height /2 / 2, self.width/3, self.height/2);
+		
+        ctxMini.drawImage(Img.oDot, 0, 0, Img.oDot.width, Img.oDot.height, ctxMiniX+self.x/20.48, ctxMiniY+self.y/20.48,Img.oDot.width,Img.oDot.height);
+    }
+
+    Powerup.list[self.id] = self;
+    return self;
+}
+Powerup.list = {};
 
 
 
@@ -275,6 +345,9 @@ socket.on('init', function(data) {
     }
     for (var i = 0; i < data.obj.length; i++) {
         new Objective(data.obj[i]);
+    }
+    for (var i = 0; i < data.pwr.length; i++) {
+        new Powerup(data.pwr[i]);
     }
 });
 
@@ -305,24 +378,45 @@ socket.on('update', function(data) {
                 p.underWallLayer = pack.underWallLayer;
             if (pack.bCounter !== undefined)
                 p.bCounter = pack.bCounter;
+            ///////////////////////////////powerups/////////////////
+            if (pack.bulletFrenzy !== undefined)
+                p.bulletFrenzy = pack.bulletFrenzy;
+            if (pack.oneHitKill !== undefined)
+                p.oneHitKill = pack.oneHitKill;
+                
+            /////////////////////////////////////////////////////////
         }
     }
     for (var i = 0; i < data.bullet.length; i++) {
-        var pack = data.bullet[i];
-        var pack2 = data.obj[i];
+        var pack1 = data.bullet[i];
         var b = Bullet.list[data.bullet[i].id];
-        var o = Objective.list[data.bullet[i].id];
         if (b) {
-            if (pack.x !== undefined)
-                b.x = pack.x;
-            if (pack.y !== undefined)
-                b.y = pack.y;
+            if (pack1.x !== undefined)
+                b.x = pack1.x;
+            if (pack1.y !== undefined)
+                b.y = pack1.y;
         }
+    }
+    //////////
+    for (var i = 0; i < data.obj.length; i++) {
+        var pack2 = data.obj[i];
+        var o = Objective.list[data.obj[i].id];
         if (o) {
-            if (pack.x !== undefined)
-                o.x = pack.x;
-            if (pack.y !== undefined)
-                o.y = pack.y;
+            if (pack2.x !== undefined)
+                o.x = pack2.x;
+            if (pack2.y !== undefined)
+                o.y = pack2.y;
+        }
+    }
+    //////
+    for (var i = 0; i < data.pwr.length; i++) {
+        var pack3 = data.pwr[i];
+        var pw = Powerup.list[data.pwr[i].id];
+        if (pw) {
+            if (pack3.x !== undefined)
+                pw.x = pack3.x;
+            if (pack3.y !== undefined)
+                pw.y = pack3.y;
         }
     }
 });
@@ -338,13 +432,15 @@ socket.on('remove', function(data) {
     for (var i = 0; i < data.obj.length; i++) {
         delete Objective.list[data.obj[i]];
     }
+    for (var i = 0; i < data.pwr.length; i++) {
+        delete Powerup.list[data.pwr[i]];
+    }
 });
 
 /////////////////////////listens for time and round data from server
 var time = 0;
 var partTime = 0;
 var displayEnd = false;
-var roundStarted = false;
 var roundStarted = false;
 socket.on('roundInfo', function(data) {
     time = data.timer;
@@ -388,6 +484,8 @@ function draw() {
     }
     for (var i in Objective.list)
         Objective.list[i].drawSelf();
+    for (var i in Powerup.list)
+        Powerup.list[i].drawSelf();
     for (var i in Bullet.list)
         Bullet.list[i].drawSelf();
 }

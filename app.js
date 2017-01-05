@@ -121,6 +121,14 @@ var Player = function(param) {
     self.timer = 0;
     self.hasMag = true;////////////ammo in a clip
     self.hasAmmo = true;/////////////havent used/ limits total ammo
+    self.roundState = roundStarted;
+    
+    ///powerups
+    self.bulletFrenzy = false;
+    self.pwrBFTimer = 0;
+    self.oneHitKill = false;
+    self.pwr1HitTimer = 0;
+    
     //randomly generated spawn.
     do {
         self.x = ((mapWidth - 100) - 100 + 1) * Math.random() + 100;
@@ -130,26 +138,58 @@ var Player = function(param) {
     self.update = function() {
         self.updateSpd();
         self.updatePosition();
-        
+        if(roundStarted != self.roundState){
+            self.roundState = roundStarted;
+            self.partTimer = 0;
+            self.timer = 0;
+            self.bCounter = 20;
+            self.hasMag = true;
+            self.hasAmmo = true;
+            self.bulletFrenzy = false;
+        }
+        /////////////////////Powerup checkers and timers
+        if(self.bulletFrenzy && self.pwrBFTimer == 0){
+            self.pwrBFTimer = time;
+        }
+        if(time - self.pwrBFTimer >= 20){
+            self.pwrBFTimer = 0;
+            self.bulletFrenzy = false;
+        }
+        if(self.oneHitKill && self.pwr1HitTimer == 0){
+            self.pwr1HitTimer = time;
+        }
+        if(time - self.pwr1HitTimer >= 20){
+            self.pwr1HitTimer = 0;
+            self.oneHitKill = false;
+        }
+        ////////////////////////////////////////////////////////////////////////////
         //shots if mouse if pressed and round has started and reload time //***********remember to add only shoot at the start of the round
         if (self.pressingAttack && !self.isZombie ){
             if(self.partTimer == 0){
                 self.partTimer = partTime;
             }
-            if(self.hasMag && self.hasAmmo && partTime - self.partTimer >= self.timeBetweenBullets) {
-                self.bCounter--;
-                self.partTimer = 0;
-                self.shootBullet(self.mouseAngle);
-                if(self.bCounter == 0){
-                    self.hasMag = false;
-                    self.timer = time;
+            if(self.hasMag && self.hasAmmo && ((self.bulletFrenzy && partTime - self.partTimer >= self.timeBetweenBullets/4) ||(partTime - self.partTimer >= self.timeBetweenBullets)) && self.bCounter >= 0) {
+                if(!roundStarted){
+                    self.partTimer = 0;
+                    self.shootBullet(self.mouseAngle);
+                }else{
+                    self.bCounter--;
+                    self.partTimer = 0;
+                    self.shootBullet(self.mouseAngle);
+                    if(self.bCounter == 0){
+                        self.hasMag = false;
+                        self.timer = time;
+                    }
                 }
             }
-        }else if(self.timer != 0 && self.bCounter == 0 &&time - self.timer >= self.reloadTime ){
+        }
+        else if(!roundStarted || (self.timer != 0 && self.bCounter == 0)){
+            if((self.bulletFrenzy && time - self.timer >= self.reloadTime/2) || time - self.timer >= self.reloadTime){
                 self.hasMag = true;
                 self.bCounter = 20;
                 self.timer = 0;
             }
+        }
     }
     self.shootBullet = function(angle) {
         Bullet({
@@ -157,6 +197,7 @@ var Player = function(param) {
             angle: angle,
             x: self.x,
             y: self.y,
+            oneHitKill: self.oneHitKill,
         });
     }
 
@@ -206,6 +247,8 @@ var Player = function(param) {
             name: self.name,
             skins: self.skins,
             bCounter: self.bCounter,
+            bulletFrenzy: self.bulletFrenzy,
+            oneHitKill: self.oneHitKill,
         };
     }
     self.getUpdatePack = function() {
@@ -223,6 +266,8 @@ var Player = function(param) {
             skins: self.skins,
             underWallLayer: self.isAboveWall(),
             bCounter: self.bCounter,
+            bulletFrenzy: self.bulletFrenzy,
+            oneHitKill: self.oneHitKill,
         }
     }
 
@@ -295,6 +340,7 @@ var Bullet = function(param) {
     self.spdX = Math.cos(param.angle / 180 * Math.PI) * 20;
     self.spdY = Math.sin(param.angle / 180 * Math.PI) * 20;
     self.parent = param.parent;
+    self.oneHitKill = param.oneHitKill;
 
     self.timer = 0;
     self.toRemove = false;
@@ -307,7 +353,10 @@ var Bullet = function(param) {
         for (var i in Player.list) {
             var p = Player.list[i];
             if (self.map === p.map && self.getDistance(p) < 32 && self.parent !== p.id && p.isZombie) {
-                p.hp -= 1;
+                if(self.oneHitKill)
+                    p.hp-= 20;
+                else
+                    p.hp -= 1;
 
                 if (p.hp <= 0) {
                     var shooter = Player.list[self.parent];
@@ -327,7 +376,6 @@ var Bullet = function(param) {
         }
         if(self.checkForCollision(self.x, self.y)){
             self.toRemove = true;
-            console.log("as");
         }
     }
     
@@ -406,7 +454,10 @@ var Objective = function(param) {
     self.update = function() {
         if (time - self.timer >= 20)
             self.toRemove = true;
-
+            
+        if(displayEnd)
+            self.toRemove = true;
+            
         for (var i in Player.list) {
             var p = Player.list[i];
             if (!p.isZombie) {
@@ -464,6 +515,94 @@ Objective.getAllInitPack = function() {
     return objs;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var Powerup = function(param) {
+    var self = new Entity(param);
+    self.id = Math.random();
+    self.init();
+    self.x = 1264;
+    self.y = 1024;
+    self.timer = time;
+    self.toRemove = false;
+    self.w = (75/2);
+    self.h = (75/2);
+    self.pwrNum = Math.floor((Math.random() * 3) + 1);
+    switch(self.pwrNum){
+        case 1: console.log("Bullet Frenzy"); break;
+        case 2: console.log("One Hit Kill"); break;
+        case 3: console.log("Speed Burst"); break;
+    }
+
+    self.update = function() {
+        if (time - self.timer >= 20)
+            self.toRemove = true;
+
+        for (var i in Player.list) {
+            var p = Player.list[i];
+            if (!p.isZombie) {
+                if (self.x - self.w < p.x + PimgW && self.x + self.w > p.x - PimgW && self.y - self.h < p.y + PimgH && self.y + self.h > p.y - PimgH && Player.list[this.id] != Player.list[i]) {
+                    console.log("pwr detected");
+                    p.score +=2;
+                    self.toRemove = true;
+                    
+                    switch(self.pwrNum){
+                        case 1: p.bulletFrenzy = true; break;
+                        case 2: p.oneHitKill = true; break;
+                        case 3: self.pwrType = "Speed Burst"; break;
+                    }
+                }
+            }
+        }
+    }
+
+    self.getInitPack = function() {
+        return {
+            id: self.id,
+            x: self.x,
+            y: self.y,
+            map: self.map,
+        };
+    }
+    self.getUpdatePack = function() {
+        return {
+            id: self.id,
+            x: self.x,
+            y: self.y,
+        };
+    }
+
+    Powerup.list[self.id] = self;
+    initPack.pwr.push(self.getInitPack());
+    return self;
+}
+
+Powerup.list = {};
+
+Powerup.update = function() {
+    var pack = [];
+    for (var i in Powerup.list) {
+        var pwr = Powerup.list[i];
+        pwr.update();
+        if (pwr.toRemove) {
+            delete Powerup.list[i];
+            removePack.pwr.push(pwr.id);
+            console.log("pwr has been removeed");
+        } else
+            pack.push(pwr.getUpdatePack());
+    }
+    return pack;
+}
+
+Powerup.getAllInitPack = function() {
+    var pwrs = [];
+    for (var i in Powerup.list)
+        pwrs.push(Powerup.list[i].getInitPack());
+    return pwrs;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 var DEBUG = false;
 var counter = 0;
 var pCounter = 0;
@@ -473,11 +612,11 @@ var io = require('socket.io')(serv, {});
 io.sockets.on('connection', function(socket) {
     socket.id = counter + 1;
     SOCKET_LIST[socket.id] = socket;
+    counter++;
+    pCounter++;
 
     socket.on('signIn', function(data) {
         NAMES_LIST[socket.id] = data;
-        counter++;
-        pCounter++;
         Player.onConnect(socket);
         socket.emit('signInResponse', { success: true });
 
@@ -508,8 +647,8 @@ io.sockets.on('connection', function(socket) {
 
 });
 
-var initPack = { player: [], bullet: [], obj: [] };
-var removePack = { player: [], bullet: [], obj: [] };
+var initPack = { player: [], bullet: [], obj: [], pwr: [] };
+var removePack = { player: [], bullet: [], obj: [], pwr: [] };
 ///////////////Time
 var partTime = 0;
 var time = 0;
@@ -527,6 +666,7 @@ function gameTimer() {
             resetTime();
             roundStarted = !roundStarted;
             Obj();
+            Powerup();
             if (pCounter >= 1)
                 pickZombie();
         } else if (displayEnd && time >= 10) { ////////////displays after end of round score
@@ -553,6 +693,13 @@ function gameTimer() {
                 resetPartTime();
                 roundStarted = !roundStarted;
             }
+        }
+        ///////if round is started and 20 seconds have passed then spawn an obj
+        if(roundStarted && !displayEnd && time % 20 == 0){
+            Obj();
+        }
+        if(roundStarted && !displayEnd && time % 20 == 0){
+            Powerup();
         }
     }
 
@@ -591,9 +738,14 @@ function resetZombie() {
     }
     allZombies = false;
 }
-
+//spawns obj
 var Obj = function() {
     Objective();
+    
+}
+//spawns powerup
+var PwrSpawn = function() {
+    Powerup();
 }
 
 setInterval(function() {
@@ -603,6 +755,7 @@ setInterval(function() {
         player: Player.update(),
         bullet: Bullet.update(),
         obj: Objective.update(),
+        pwr: Powerup.update(),
     }
 
     for (var i in SOCKET_LIST) {
@@ -615,9 +768,11 @@ setInterval(function() {
     initPack.player = [];
     initPack.bullet = [];
     initPack.obj = [];
+    initPack.pwr = [];
     removePack.player = [];
     removePack.bullet = [];
     removePack.obj = [];
+    removePack.pwr = [];
 
 
 }, 1000 / 25);
