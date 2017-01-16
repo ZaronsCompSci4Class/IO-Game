@@ -27,10 +27,13 @@ var sb2 = document.getElementById("shop-button2");
 var sb3 = document.getElementById("shop-button3");
 var sb4 = document.getElementById("shop-button4");
 var sb5 = document.getElementById("shop-button5");
-//Play Button
-signDivPlay.onclick = function() {
+
+//Sign-in
+signDivUsername.focus();
+var signIn = function() {
     socket.emit('signIn', signDivUsername.value);
 }
+
 //Store Button
 storeButton.onclick = function() {
     if (storeMenu.style.display != 'block') {
