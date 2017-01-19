@@ -119,7 +119,6 @@ function Player(param) {
     this.skins = "reg";
     this.bCounter = 20;
     this.reloadTime = 5;
-    this.timeBetweenBullets = 25 / 6.25; //.25 seconds calculated by taking 25 fps / 6.25 = 4 so its 1/4 of a second
     this.partTimer = 0;
     this.timer = 0;
     this.hasMag = true; ////////////ammo in a clip
@@ -145,7 +144,7 @@ function Player(param) {
         this.y = ((mapHeight - 100) - 100 + 1) * Math.random() + 100;
     } while (this.checkForCollision(this.x, this.y));
 
-    var lastShotTime = time;
+    var lastShotTime = partTime;
 
     this.update = function() {
         this.updateSpd();
@@ -176,12 +175,9 @@ function Player(param) {
 
         //shoots if mouse if pressed and round has started and reload time //***********remember to add only shoot at the start of the round
         if (this.pressingAttack && !this.isZombie) {
-            if (this.partTimer == 0) {
-                this.partTimer = partTime;
-            }
             //if has a magazine and ammo inside, and more than timeBetweenBullets time has passed after the last shot, shoot a new Bullet
-            if (this.hasMag && this.hasAmmo && time - lastShotTime >= this.mod.timeBetweenBullets && this.bCounter >= 0) {
-                lastShotTime = time;
+            if (this.hasMag && this.hasAmmo && partTime - lastShotTime >= this.mod.timeBetweenBullets && this.bCounter >= 0) {
+                lastShotTime = partTime;
                 if (!roundStarted) {
                     this.partTimer = 0;
                     this.shootBullet(this.mouseAngle);
@@ -788,6 +784,7 @@ function gameTimer() {
 }
 
 function resetTime() {
+    console.log("reset");
     time = 0;
 }
 

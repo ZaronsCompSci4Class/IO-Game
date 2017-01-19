@@ -355,7 +355,7 @@ mapEffects.recoil.update = function() {
     mapEffects.recoil.dy = 2 * time * Math.sin(Player.list[selfId].mouseAngle / 180 * Math.PI);
     mapEffects.recoil.time++;
     console.log(mapEffects.recoil.dx);
-    if(mapEffects.recoil.time >= mapEffects.recoil.duration){
+    if (mapEffects.recoil.time >= mapEffects.recoil.duration) {
         mapEffects.recoil.on = false;
     }
 }
@@ -376,12 +376,15 @@ setInterval(function() {
 function update() {
     for (var i in Player.list)
         Player.list[i].update();
-    if(mapEffects.recoil.on)
+    if (mapEffects.recoil.on)
         mapEffects.recoil.update();
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    if (mapEffects.recoil.on) {
+        // ctx.translate(mapEffects.recoil.dx, mapEffects.recoil.dy);
+    }
     drawMap('floor');
     for (var i in Player.list) {
         if (!Player.list[i].underWallLayer) {
@@ -407,9 +410,6 @@ function draw() {
         Powerup.list[i].drawSelf();
     for (var i in Bullet.list)
         Bullet.list[i].drawSelf();
-    if (mapEffects.recoil.on) {
-        ctx.translate(mapEffects.recoil.dx, mapEffects.recoil.dy);
-    }
 }
 
 var roundPharse;
