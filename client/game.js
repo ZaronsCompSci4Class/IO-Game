@@ -246,72 +246,18 @@ socket.on('init', function(data) {
 });
 
 socket.on('update', function(data) {
+    //receives update events from server and updates all client-side entities
     for (var i = 0; i < data.player.length; i++) {
-        var pack = data.player[i];
-        var p = Player.list[pack.id];
-        if (p) {
-            if (pack.x !== undefined)
-                p.x = pack.x;
-            if (pack.y !== undefined)
-                p.y = pack.y;
-            if (pack.hp !== undefined)
-                p.hp = pack.hp;
-            if (pack.score !== undefined)
-                p.score = pack.score;
-            ///////////////////////////////////////////////////////////////////////////////
-            if (pack.mouseAngle !== undefined)
-                p.mouseAngle = pack.mouseAngle;
-            ////////////////////////////////////////////////////////////////////////////////
-            if (pack.animCounter !== undefined)
-                p.animCounter = pack.animCounter;
-            if (pack.isZombie !== undefined)
-                p.isZombie = pack.isZombie;
-            if (pack.skins !== undefined)
-                p.skins = pack.skins;
-            if (pack.underWallLayer !== undefined)
-                p.underWallLayer = pack.underWallLayer;
-            if (pack.bCounter !== undefined)
-                p.bCounter = pack.bCounter;
-            ///////////////////////////////powerups/////////////////
-            if (pack.bulletFrenzy !== undefined)
-                p.bulletFrenzy = pack.bulletFrenzy;
-            if (pack.oneHitKill !== undefined)
-                p.oneHitKill = pack.oneHitKill;
-
-            /////////////////////////////////////////////////////////
-        }
+        Object.assign(Player.list[data.player[i].id], data.player[i]);
     }
     for (var i = 0; i < data.bullet.length; i++) {
-        var pack1 = data.bullet[i];
-        var b = Bullet.list[data.bullet[i].id];
-        if (b) {
-            if (pack1.x !== undefined)
-                b.x = pack1.x;
-            if (pack1.y !== undefined)
-                b.y = pack1.y;
-        }
+        Object.assign(Bullet.list[data.bullet[i].id], data.bullet[i]);
     }
-    //////////
     for (var i = 0; i < data.obj.length; i++) {
-        var pack2 = data.obj[i];
-        var o = Objective.list[data.obj[i].id];
-        if (o) {
-            if (pack2.x !== undefined)
-                o.x = pack2.x;
-            if (pack2.y !== undefined)
-                o.y = pack2.y;
-        }
+        Object.assign(Objective.list[data.obj[i].id], data.obj[i]);
     }
-    //////
     for (var i = 0; i < data.pwr.length; i++) {
-        var pack3 = data.pwr[i];
-        var pw = Powerup.list[data.pwr[i].id];
-        if (pw) {
-            if (pack3.x !== undefined)
-                pw.x = pack3.x;
-            if (pack3.y !== undefined)
-                pw.y = pack3.y;
-        }
+        Object.assign(Powerup.list[data.pwr[i].id], data.pwr[i]);
     }
 });
 

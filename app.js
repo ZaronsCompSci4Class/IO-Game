@@ -1,3 +1,5 @@
+"use strict";
+
 var express = require('express');
 var app = express();
 var serv = require('http').Server(app);
@@ -699,9 +701,7 @@ io.sockets.on('connection', function(socket) {
     });
     socket.on('sendMsgToServer', function(data) {
         var playerName = NAMES_LIST[socket.id];
-        for (var i in SOCKET_LIST) {
-            SOCKET_LIST[i].emit('addToChat', playerName + ': ' + data);
-        }
+        io.emit('addToChat', playerName + ': ' + data);
     });
 
     socket.on('evalServer', function(data) {
@@ -759,9 +759,8 @@ function gameTimer() {
                 resetZombie();
         } else if (roundStarted) { ///////////if all plays are zombies ends round
             allZombies = true;
-            for (var i in Player.list) {
-                var p = Player.list[i];
-                if (!p.isZombie)
+            for (let i in Player.list) {
+                if (!Player.list[i].isZombie)
                     allZombies = false;
             }
             if (allZombies) {
@@ -784,7 +783,6 @@ function gameTimer() {
 }
 
 function resetTime() {
-    console.log("reset");
     time = 0;
 }
 
@@ -793,7 +791,7 @@ function resetPartTime() {
 }
 
 function isPlayerOffline(num) {
-    for (var i in DISCONECTED_LIST) {
+    for (let i in DISCONECTED_LIST) {
         if (num === DISCONECTED_LIST[i])
             return true;
     }
