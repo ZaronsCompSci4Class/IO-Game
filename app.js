@@ -262,6 +262,7 @@ function Player(param) {
         };
     }
     this.getUpdatePack = function() {
+        console.log(this.id);
         return {
             id: this.id,
             x: this.x,
