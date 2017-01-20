@@ -285,24 +285,20 @@ var roundStarted = false;
 var mapEffects = {
     recoil: {
         on: false,
-        time,
         dx: 0,
         dy: 0,
-        duration: .5 * framerate / 2,
-    }
-}
-mapEffects.recoil.start = function(theta) {
-    mapEffects.recoil.on = true;
-    mapEffects.recoil.angle = theta;
-    mapEffects.recoil.time = -mapEffects.recoil.duration;
-}
-mapEffects.recoil.update = function() {
-    mapEffects.recoil.dx = 2 * time * Math.cos(Player.list[selfId].mouseAngle / 180 * Math.PI);
-    mapEffects.recoil.dy = 2 * time * Math.sin(Player.list[selfId].mouseAngle / 180 * Math.PI);
-    mapEffects.recoil.time++;
-    console.log(mapEffects.recoil.dx);
-    if (mapEffects.recoil.time >= mapEffects.recoil.duration) {
-        mapEffects.recoil.on = false;
+        start: function(theta) {
+            this.on = true;
+            this.angle = theta;
+        },
+        update: function() {
+            this.dx = 2 * time * Math.cos(Player.list[selfId].mouseAngle / 180 * Math.PI);
+            this.dy = 2 * time * Math.sin(Player.list[selfId].mouseAngle / 180 * Math.PI);
+            console.log(this.dx);
+            if (true) {
+                this.on = false;
+            }
+        }
     }
 }
 socket.on('roundInfo', function(data) {
