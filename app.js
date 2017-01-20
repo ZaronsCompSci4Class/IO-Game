@@ -801,7 +801,7 @@ function isPlayerOffline(num) {
 function pickZombie() {
     var zNum;
     do {
-        zNum = Math.floor((counter) * Math.random()) + 1;
+        zNum = Math.floor(counter * Math.random());
     } while (isPlayerOffline(zNum));
     console.log(NAMES_LIST[zNum] + " is a zombie");
     Player.list[zNum].isZombie = true;

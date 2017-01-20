@@ -248,16 +248,20 @@ socket.on('init', function(data) {
 socket.on('update', function(data) {
     //receives update events from server and updates all client-side entities
     for (var i = 0; i < data.player.length; i++) {
-        Object.assign(Player.list[data.player[i].id], data.player[i]);
+        for (var j in data.player[i])
+            Player.list[data.player[i].id][j] = data.player[i][j];
     }
     for (var i = 0; i < data.bullet.length; i++) {
-        Object.assign(Bullet.list[data.bullet[i].id], data.bullet[i]);
+        for (var j in data.bullet[i])
+            Bullet.list[data.bullet[i].id][j] = data.bullet[i][j];
     }
     for (var i = 0; i < data.obj.length; i++) {
-        Object.assign(Objective.list[data.obj[i].id], data.obj[i]);
+        for (var j in data.obj[i])
+            Objective.list[data.obj[i].id][j] = data.obj[i][j];
     }
     for (var i = 0; i < data.pwr.length; i++) {
-        Object.assign(Powerup.list[data.pwr[i].id], data.pwr[i]);
+        for (var j in data.pwr[i])
+            Powerup.list[data.pwr[i].id][j] = data.pwr[i][j];
     }
 });
 
