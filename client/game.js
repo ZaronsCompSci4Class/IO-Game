@@ -1,16 +1,11 @@
 var framerate = 1000 / 40;
 
-function Entity() {
-    this.init = function(initPack, imgParam) {
-        this.id = initPack.id;
-        this.x = initPack.x;
-        this.y = initPack.y;
-        this.width = imgParam.width / 2;
-        this.height = imgParam.height / 2;
+function Entity(initPack, imgParam) {
+    for (var i in initPack) {
+        this[i] = initPack[i];
     }
-
-    this.drawSelf = function() {}
-    this.drawAttributes = function() {}
+    this.width = imgParam.width / 2;
+    this.height = imgParam.height / 2;
 
     this.update = function() {
         this.relativeX = this.x - Player.list[selfId].x + canvasWidth / 2;
@@ -25,33 +20,32 @@ function Entity() {
     }
 
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-var Player = function(initPack) {
-    var self = new Entity();
-    self.init(initPack, Img.playerSprite);
-    self.number = initPack.number;
-    self.hp = initPack.hp;
-    self.hpMax = initPack.hpMax;
-    self.score = initPack.score;
-    self.mouseAngle = initPack.mouseAngle;
-    self.animCounter = initPack.animCounter;
-    self.isZombie = initPack.isZombie;
-    self.name = initPack.name;
-    self.skins = initPack.skins;
-    self.bCounter = initPack.bCounter;
-    self.partTimer = 0;
-    ///powerups
-    self.bulletFrenzy = false;
-    self.oneHitKill = false;
-    self.activePwrs = [];
-    self.numOfPwrs = 0;
-    ///////////////sprite///////////////////
-    self.spriteW = Img.playerSprite.width / 4;
-    self.spriteH = Img.playerSprite.height / 4;
 
-    self.drawSelf = function() {
+function Player(initPack) {
+    Entity.call(this, initPack, Img.playerSprite);
+    this.number = initPack.number;
+    this.hp = initPack.hp;
+    this.hpMax = initPack.hpMax;
+    this.score = initPack.score;
+    this.mouseAngle = initPack.mouseAngle;
+    this.animCounter = initPack.animCounter;
+    this.isZombie = initPack.isZombie;
+    this.name = initPack.name;
+    this.skins = initPack.skins;
+    this.bCounter = initPack.bCounter;
+    this.partTimer = 0;
+    ///powerups
+    this.bulletFrenzy = false;
+    this.oneHitKill = false;
+    this.activePwrs = [];
+    this.numOfPwrs = 0;
+    ///////////////sprite///////////////////
+    this.spriteW = Img.playerSprite.width / 4;
+    this.spriteH = Img.playerSprite.height / 4;
+
+    this.drawSelf = function() {
         //gets mouse angel and makes it positive if negative
-        var mouseAngle = self.mouseAngle;
+        var mouseAngle = this.mouseAngle;
         if (mouseAngle < 0)
             mouseAngle += 360;
         ///sets directionMod depending on angle
@@ -63,156 +57,148 @@ var Player = function(initPack) {
         else if (mouseAngle >= 315 || mouseAngle < 45) //right
             directionMod = 2;
         ///sets moveMod depending on how long moving
-        var moveMod = Math.floor(self.animCounter) % 4;
+        var moveMod = Math.floor(this.animCounter) % 4;
         //picks the sprite from sheet based on directionMod and moveMod
-        if (self.isZombie)
+        if (this.isZombie)
             var imgPicker = Img.playerSprite2;
-        else if (!self.isZombie && self.skins == "reg")
+        else if (!this.isZombie && this.skins == "reg")
             var imgPicker = Img.playerSprite;
-        else if (!self.isZombie && self.skins == "boughtHarambe")
+        else if (!this.isZombie && this.skins == "boughtHarambe")
             var imgPicker = Img.harambeSprite;
         else
             var imgPicker = Img.playerSprite;
 
-        ctx.drawImage(imgPicker, moveMod * self.spriteW, directionMod * self.spriteH, self.spriteW, self.spriteH, self.relativeX - self.width / 2, self.relativeY - self.height / 2, self.width, self.height);
+        ctx.drawImage(imgPicker, moveMod * this.spriteW, directionMod * this.spriteH, this.spriteW, this.spriteH, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
     }
 
-    self.drawDot = function() {
-        if (self.id == selfId)
+    this.drawDot = function() {
+        if (this.id == selfId)
             var dotPicker = Img.pDot;
-        else if (self.isZombie)
+        else if (this.isZombie)
             var dotPicker = Img.eDot;
         else
             var dotPicker = Img.fDot;
-        ctxMini.drawImage(dotPicker, 0, 0, dotPicker.width, dotPicker.height, ctxMiniX + self.x / 20.48, ctxMiniY + self.y / 20.48, dotPicker.width, dotPicker.height);
+        ctxMini.drawImage(dotPicker, 0, 0, dotPicker.width, dotPicker.height, ctxMiniX + this.x / 20.48, ctxMiniY + this.y / 20.48, dotPicker.width, dotPicker.height);
     }
 
-    self.drawAttributes = function() {
+    this.drawAttributes = function() {
         //draw health bar
-        var hpWidth = 30 * self.hp / self.hpMax;
+        var hpWidth = 30 * this.hp / this.hpMax;
         ctx.fillStyle = 'green';
-        ctx.fillRect(self.relativeX - hpWidth / 2, self.relativeY - 40, hpWidth, 4);
-        if (self.id == selfId) {
-            if (self.bCounter != 0) {
+        ctx.fillRect(this.relativeX - hpWidth / 2, this.relativeY - 40, hpWidth, 4);
+        if (this.id == selfId) {
+            if (this.bCounter != 0) {
                 ctx.fillStyle = 'green';
-                ctx.fillRect(canvasWidth * .98, canvasHeight * .025 + (20 - self.bCounter) * canvasHeight / 21, canvasWidth * .015, self.bCounter * canvasHeight / 21);
-                self.partTimer = partTime;
+                ctx.fillRect(canvasWidth * .98, canvasHeight * .025 + (20 - this.bCounter) * canvasHeight / 21, canvasWidth * .015, this.bCounter * canvasHeight / 21);
+                this.partTimer = partTime;
             } else {
                 ctx.fillStyle = 'red';
-                if (self.bulletFrenzy)
-                    ctx.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - self.partTimer) * .04) * 2);
+                if (this.bulletFrenzy)
+                    ctx.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - this.partTimer) * .04) * 2);
                 else
-                    ctx.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - self.partTimer) * .04));
+                    ctx.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - this.partTimer) * .04));
             }
 
             ////////drawing powerup
-            if (self.bulletFrenzy)
-                self.activePwrs[0] = true;
+            if (this.bulletFrenzy)
+                this.activePwrs[0] = true;
             else
-                self.activePwrs[0] = false;
-            if (self.oneHitKill)
-                self.activePwrs[1] = true;
+                this.activePwrs[0] = false;
+            if (this.oneHitKill)
+                this.activePwrs[1] = true;
             else
-                self.activePwrs[1] = false;
+                this.activePwrs[1] = false;
 
-            self.numOfPwrs = 0;
-            for (var i in self.activePwrs) {
-                if (self.activePwrs[i])
-                    self.numOfPwrs++;
+            this.numOfPwrs = 0;
+            for (var i in this.activePwrs) {
+                if (this.activePwrs[i])
+                    this.numOfPwrs++;
             }
-            console.log(self.numOfPwrs);
+            console.log(this.numOfPwrs);
 
             var pwrXMod;
             var pwrYMod;
-            if (self.bulletFrenzy) {
+            if (this.bulletFrenzy) {
                 pwrXMod = 0;
                 pwrYMod = 0;
             }
-            if (self.oneHitKill) {
+            if (this.oneHitKill) {
                 pwrXMod = Img.pwrSprite / 3 * 2;
                 pwrYMod = Img.pwrSprite / 2;
             }
-            if (self.numOfPwrs >= 1) {
-                ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2, ctxMiniX - (Img.pwrSprite.width / 3) * self.numOfPwrs, ctxMiniY, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2);
-                console.log("x " + ctxMiniX - (Img.pwrSprite.width / 3) * self.numOfPwrs);
+            if (this.numOfPwrs >= 1) {
+                ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2, ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs, ctxMiniY, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2);
+                console.log("x " + ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs);
             }
         }
     }
 
-    Player.list[self.id] = self;
+    Player.list[this.id] = this;
 
 
-    return self;
+    return this;
 }
 Player.list = {};
-////////////////////////////////////////////////////////////////////////////////
 
-var Bullet = function(initPack) {
-    var self = new Entity();
-    self.init(initPack, Img.bullet);
-    self.drawSelf = function() {
+function Bullet(initPack) {
+    Entity.call(this, initPack, Img.bullet.width);
+    this.drawSelf = function() {
         var width = Img.bullet.width / 2;
         var height = Img.bullet.height / 2;
 
-        var x = self.x - Player.list[selfId].x + canvasWidth / 2;
-        var y = self.y - Player.list[selfId].y + canvasHeight / 2;
+        var x = this.x - Player.list[selfId].x + canvasWidth / 2;
+        var y = this.y - Player.list[selfId].y + canvasHeight / 2;
 
         ctx.drawImage(Img.bullet,
             0, 0, Img.bullet.width, Img.bullet.height,
             x - width / 2, y - height / 2, width, height);
     }
 
-    Bullet.list[self.id] = self;
-    return self;
+    Bullet.list[this.id] = this;
+    return this;
 }
 Bullet.list = {};
 ////////////////////////////////////////////////////////////////////////////////
-var Objective = function(initPack) {
-    var self = new Entity();
-    self.init(initPack, Img.obj);
-    self.drawSelf = function() {
+function Objective(initPack) {
+    Entity.call(this, initPack, Img.obj);
+    this.drawSelf = function() {
 
-        var x = self.x - Player.list[selfId].x + canvasWidth / 2;
-        var y = self.y - Player.list[selfId].y + canvasHeight / 2;
+        var x = this.x - Player.list[selfId].x + canvasWidth / 2;
+        var y = this.y - Player.list[selfId].y + canvasHeight / 2;
 
-        ctx.drawImage(Img.obj, 0, 0, Img.obj.width, Img.obj.height, x - self.width / 2, y - self.height / 2, self.width, self.height);
-        ctxMini.drawImage(Img.oDot, 0, 0, Img.oDot.width, Img.oDot.height, ctxMiniX + self.x / 20.48, ctxMiniY + self.y / 20.48, Img.oDot.width, Img.oDot.height);
+        ctx.drawImage(Img.obj, 0, 0, Img.obj.width, Img.obj.height, x - this.width / 2, y - this.height / 2, this.width, this.height);
+        ctxMini.drawImage(Img.oDot, 0, 0, Img.oDot.width, Img.oDot.height, ctxMiniX + this.x / 20.48, ctxMiniY + this.y / 20.48, Img.oDot.width, Img.oDot.height);
     }
 
-    Objective.list[self.id] = self;
-    return self;
+    Objective.list[this.id] = this;
+    return this;
 }
 Objective.list = {};
 
-////////////////////////////////////////////////////////////////////////////////
-var Powerup = function(initPack) {
-    var self = new Entity();
-    self.init(initPack, Img.pwrSprite);
-    self.drawSelf = function() {
+function Powerup(initPack) {
+    Entity.call(this, initPack, Img.pwrSprite);
+    this.drawSelf = function() {
 
-        var x = self.x - Player.list[selfId].x + canvasWidth / 2;
-        var y = self.y - Player.list[selfId].y + canvasHeight / 2;
-
-        //var pwrPicker;
-        //if(self.bulletFrenzy)
+        var x = this.x - Player.list[selfId].x + canvasWidth / 2;
+        var y = this.y - Player.list[selfId].y + canvasHeight / 2;
 
         var pwrXMod = 0;
         var pwrYMod = 0;
-        if (self.bulletFrenzy) {
+        if (this.bulletFrenzy) {
             pwrXMod = 0;
             pwrYMod = 0;
         }
-        if (self.oneHitKill) {
+        if (this.oneHitKill) {
             pwrXMod = Img.pwrSprite / 3 * 2;
             pwrYMod = Img.pwrSprite / 2;
         }
-        ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, self.width / 3, self.height / 2, x - self.width / 3 / 2, y - self.height / 2 / 2, self.width / 3, self.height / 2);
+        ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, this.width / 3, this.height / 2, x - this.width / 3 / 2, y - this.height / 2 / 2, this.width / 3, this.height / 2);
 
-        ctxMini.drawImage(Img.oDot, 0, 0, Img.oDot.width, Img.oDot.height, ctxMiniX + self.x / 20.48, ctxMiniY + self.y / 20.48, Img.oDot.width, Img.oDot.height);
+        ctxMini.drawImage(Img.oDot, 0, 0, Img.oDot.width, Img.oDot.height, ctxMiniX + this.x / 20.48, ctxMiniY + this.y / 20.48, Img.oDot.width, Img.oDot.height);
     }
 
-    Powerup.list[self.id] = self;
-    return self;
+    Powerup.list[this.id] = this;
+    return this;
 }
 Powerup.list = {};
 
@@ -247,72 +233,34 @@ socket.on('init', function(data) {
 
 socket.on('update', function(data) {
     //receives update events from server and updates all client-side entities
-    for (var i = 0; i < data.player.length; i++) {
-		var pack = data.player[i];
-		var p = Player.list[pack.id];
-		if (p) {
-			if (pack.x !== undefined)
-				p.x = pack.x;
-			if (pack.y !== undefined)
-				p.y = pack.y;
-			if (pack.hp !== undefined)
-				p.hp = pack.hp;
-			if (pack.score !== undefined)
-				p.score = pack.score;
-			///////////////////////////////////////////////////////////////////////////////
-			if (pack.mouseAngle !== undefined)
-				p.mouseAngle = pack.mouseAngle;
-			////////////////////////////////////////////////////////////////////////////////
-			if (pack.animCounter !== undefined)
-				p.animCounter = pack.animCounter;
-			if (pack.isZombie !== undefined)
-				p.isZombie = pack.isZombie;
-			if (pack.skins !== undefined)
-				p.skins = pack.skins;
-			if (pack.underWallLayer !== undefined)
-				p.underWallLayer = pack.underWallLayer;
-			if (pack.bCounter !== undefined)
-				p.bCounter = pack.bCounter;
-			///////////////////////////////powerups/////////////////
-			if (pack.bulletFrenzy !== undefined)
-				p.bulletFrenzy = pack.bulletFrenzy;
-			if (pack.oneHitKill !== undefined)
-				p.oneHitKill = pack.oneHitKill;
-
-			/////////////////////////////////////////////////////////
+    for (var i in data.player) {
+        if (Player.list.hasOwnProperty(i)) {
+            for (var j in data.player[i]) {
+                //this if statement guards against update arriving before init
+                Player.list[i][j] = data.player[i][j];
+            }
         }
     }
-	for (var i = 0; i < data.bullet.length; i++) {
-		var pack1 = data.bullet[i];
-		var b = Bullet.list[data.bullet[i].id];
-		if (b) {
-			if (pack1.x !== undefined)
-				b.x = pack1.x;
-			if (pack1.y !== undefined)
-				b.y = pack1.y;
-		}
-	}
-	//////////
-	for (var i = 0; i < data.obj.length; i++) {
-		var pack2 = data.obj[i];
-		var o = Objective.list[data.obj[i].id];
-		if (o) {
-			if (pack2.x !== undefined)
-				o.x = pack2.x;
-			if (pack2.y !== undefined)
-				o.y = pack2.y;
-		}
-	}
-	//////
-	for (var i = 0; i < data.pwr.length; i++) {
-		var pack3 = data.pwr[i];
-		var pw = Powerup.list[data.pwr[i].id];
-		if (pw) {
-			if (pack3.x !== undefined)
-				pw.x = pack3.x;
-			if (pack3.y !== undefined)
-				pw.y = pack3.y;
-		}
+    for (var i in data.bullet) {
+        if (Bullet.list.hasOwnProperty(i)) {
+            for (var j in data.bullet[i]) {
+                Bullet.list[i][j] = data.bullet[i][j];
+            }
+        }
+    }
+    for (var i in data.obj) {
+        if (Objective.list.hasOwnProperty(i)) {
+            for (var j in data.obj[i]) {
+                Objective.list[i][j] = data.obj[i][j];
+            }
+        }
+    }
+    for (var i in data.pwr) {
+        if (Powerup.list.hasOwnProperty(i)) {
+            for (var j in data.pwr[i]) {
+                Powerup.list[i][j] = data.pwr[i][j];
+            }
+        }
     }
 });
 

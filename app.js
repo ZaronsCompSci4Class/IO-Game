@@ -117,7 +117,7 @@ function Player(param) {
     this.score = 0;
     this.animCounter = 1; //1 is the starting frame for this sprite//0 and 2
     this.isZombie = roundStarted;
-    this.name = NAMES_LIST[counter];
+    this.name = NAMES_LIST[this.id];
     this.skins = "reg";
     this.bCounter = 20;
     this.reloadTime = 5;
@@ -140,11 +140,13 @@ function Player(param) {
         spd: 10
     };
 
-    //randomly generated spawn.
-    do {
-        this.x = ((mapWidth - 100) - 100 + 1) * Math.random() + 100;
-        this.y = ((mapHeight - 100) - 100 + 1) * Math.random() + 100;
-    } while (this.checkForCollision(this.x, this.y));
+    this.spawn = function() {
+        do {
+            this.x = ((mapWidth - 100) - 100 + 1) * Math.random() + 100;
+            this.y = ((mapHeight - 100) - 100 + 1) * Math.random() + 100;
+        } while (this.checkForCollision(this.x, this.y));
+    }
+    this.spawn();
 
     var lastShotTime = partTime;
 
@@ -200,6 +202,7 @@ function Player(param) {
                 this.timer = 0;
             }
         }
+        return this.getUpdatePack();
     }
     this.shootBullet = function(angle) {
         Bullet({
@@ -262,7 +265,6 @@ function Player(param) {
         };
     }
     this.getUpdatePack = function() {
-        console.log(this.id);
         return {
             id: this.id,
             x: this.x,
@@ -333,16 +335,13 @@ Player.onDisconnect = function(socket) {
     removePack.player.push(socket.id);
 }
 Player.update = function() {
-    var pack = [];
-    for (var i in Player.list) {
-        var player = Player.list[i];
-        player.update();
-        pack.push(player.getUpdatePack());
+    var pack = {};
+    for (let i in Player.list) {
+        pack[i] = Player.list[i].update();
     }
     return pack;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var Bullet = function(param) {
     var self = new Entity(param);
     self.init();
@@ -374,13 +373,7 @@ var Bullet = function(param) {
                     if (shooter)
                         shooter.score += 1;
                     p.hp = p.hpMax;
-                    //randomly generated respawn and checks for respawn collision
-                    do {
-                        p.collision = false;
-                        p.x = ((mapWidth - 100) - 100 + 1) * Math.random() + 100;
-                        p.y = ((mapHeight - 100) - 100 + 1) * Math.random() + 100;
-                        p.checkForCollision();
-                    } while (p.collision);
+                    p.spawn();
                 }
                 self.toRemove = true;
             }
@@ -431,7 +424,7 @@ var Bullet = function(param) {
 Bullet.list = {};
 
 Bullet.update = function() {
-    var pack = [];
+    var pack = {};
     for (var i in Bullet.list) {
         var bullet = Bullet.list[i];
         bullet.update();
@@ -439,7 +432,7 @@ Bullet.update = function() {
             delete Bullet.list[i];
             removePack.bullet.push(bullet.id);
         } else
-            pack.push(bullet.getUpdatePack());
+            pack[i] = bullet.getUpdatePack();
     }
     return pack;
 }
@@ -505,7 +498,7 @@ var Objective = function(param) {
 Objective.list = {};
 
 Objective.update = function() {
-    var pack = [];
+    var pack = {};
     for (var i in Objective.list) {
         var obj = Objective.list[i];
         obj.update();
@@ -514,7 +507,7 @@ Objective.update = function() {
             removePack.obj.push(obj.id);
             console.log("obj has been removeed");
         } else
-            pack.push(obj.getUpdatePack());
+            pack[i] = obj.getUpdatePack();
     }
     return pack;
 }
@@ -650,7 +643,7 @@ function Powerup(param) {
 Powerup.list = {};
 
 Powerup.update = function() {
-    var pack = [];
+    var pack = {};
     for (var i in Powerup.list) {
         var pwr = Powerup.list[i];
         pwr.update();
@@ -658,7 +651,7 @@ Powerup.update = function() {
             delete Powerup.list[i];
             removePack.pwr.push(pwr.id);
         } else
-            pack.push(pwr.getUpdatePack());
+            pack[i] = pwr.getUpdatePack();
     }
     return pack;
 }
@@ -744,7 +737,7 @@ function gameTimer() {
         if (time >= 8 && !roundStarted) { ////////////starts the game after 15 sec prep
             resetTime();
             roundStarted = !roundStarted;
-            Obj();
+            new Objective();
             new Powerup();
             if (pCounter >= 1)
                 pickZombie();
@@ -774,7 +767,7 @@ function gameTimer() {
         }
         ///////if round is started and 20 seconds have passed then spawn an obj
         if (roundStarted && !displayEnd && time % 20 === 0) {
-            Obj();
+            new Objective();
         }
         if (roundStarted && !displayEnd && time % 20 === 0) {
             new Powerup();
@@ -801,10 +794,8 @@ function isPlayerOffline(num) {
 
 function pickZombie() {
     var zNum;
-    do {
-        zNum = Math.floor(counter * Math.random());
-    } while (isPlayerOffline(zNum));
-    console.log(NAMES_LIST[zNum] + " is a zombie");
+    var playerArr = Object.keys(Player.list);
+    zNum = playerArr[Math.floor(Math.random() * playerArr.length)];
     Player.list[zNum].isZombie = true;
 }
 
@@ -815,11 +806,6 @@ function resetZombie() {
         p.hp = p.hpMax;
     }
     allZombies = false;
-}
-//spawns obj
-var Obj = function() {
-    Objective();
-
 }
 
 setInterval(function() {
