@@ -184,11 +184,11 @@ function Player(param) {
                 lastShotTime = partTime;
                 if (!roundStarted) {
                     this.partTimer = 0;
-                    this.shootBullet(this.mouseAngle);
+                    this.shootBullet();
                 } else {
                     this.bCounter--;
                     this.partTimer = 0;
-                    this.shootBullet(this.mouseAngle);
+                    this.shootBullet();
                     if (this.bCounter == 0) {
                         this.hasMag = false;
                         this.timer = time;
@@ -207,7 +207,7 @@ function Player(param) {
     this.shootBullet = function(angle) {
         Bullet({
             parent: this.id,
-            angle: angle,
+            angle: this.mouseAngle,
             x: this.x,
             y: this.y,
             oneHitKill: this.mod.pwrs.hasOwnProperty("1HitKill"),
@@ -347,8 +347,9 @@ var Bullet = function(param) {
     self.init();
     self.id = Math.random();
     self.angle = param.angle;
-    self.spdX = Math.cos(param.angle / 180 * Math.PI) * 20;
-    self.spdY = Math.sin(param.angle / 180 * Math.PI) * 20;
+    console.log(self.angle / Math.PI + " " + Math.sin(self.angle));
+    self.spdX = Math.cos(self.angle) * 20;
+    self.spdY = -Math.sin(self.angle) * 20;
     self.parent = param.parent;
     self.oneHitKill = param.oneHitKill;
 
@@ -414,6 +415,7 @@ var Bullet = function(param) {
             id: self.id,
             x: self.x,
             y: self.y,
+            angle: self.angle,
         };
     }
 

@@ -1,4 +1,5 @@
 var framerate = 1000 / 40;
+var selfMouseAngle;
 
 function Entity(initPack, imgParam) {
     for (var i in initPack) {
@@ -7,32 +8,16 @@ function Entity(initPack, imgParam) {
     this.width = imgParam.width / 2;
     this.height = imgParam.height / 2;
 
-    this.update = function() {
-        this.relativeX = this.x - Player.list[selfId].x + canvasWidth / 2;
-        this.relativeY = this.y - Player.list[selfId].y + canvasHeight / 2;
+    this.updatePos = function() {
+        var relativeX = this.x - Player.list[selfId].x + canvasWidth / 2;
+        var relativeY = this.y - Player.list[selfId].y + canvasHeight / 2;
+        this.drawingX = relativeX - this.width / 2;
+        this.drawingY = relativeY - this.height / 2;
     }
-
-    this.draw = function(part) {
-        if (part == 'self') {
-            this.drawSelf();
-        } else if (part == 'attributes')
-            this.drawAttributes();
-    }
-
 }
 
 function Player(initPack) {
     Entity.call(this, initPack, Img.playerSprite);
-    this.number = initPack.number;
-    this.hp = initPack.hp;
-    this.hpMax = initPack.hpMax;
-    this.score = initPack.score;
-    this.mouseAngle = initPack.mouseAngle;
-    this.animCounter = initPack.animCounter;
-    this.isZombie = initPack.isZombie;
-    this.name = initPack.name;
-    this.skins = initPack.skins;
-    this.bCounter = initPack.bCounter;
     this.partTimer = 0;
     ///powerups
     this.bulletFrenzy = false;
@@ -44,17 +29,13 @@ function Player(initPack) {
     this.spriteH = Img.playerSprite.height / 4;
 
     this.drawSelf = function() {
-        //gets mouse angel and makes it positive if negative
-        var mouseAngle = this.mouseAngle;
-        if (mouseAngle < 0)
-            mouseAngle += 360;
-        ///sets directionMod depending on angle
+        //sets directionMod depending on angle
         var directionMod = 0; //down
-        if (mouseAngle >= 135 && mouseAngle < 225) //left
+        if (this.mouseAngle >= 3 * Math.PI / 4 && this.mouseAngle < 5 * Math.PI / 4) //left
             directionMod = 1;
-        else if (mouseAngle >= 225 && mouseAngle < 315) //up
+        else if (this.mouseAngle >= Math.PI / 4 && this.mouseAngle < 3 * Math.PI / 4) //up
             directionMod = 3;
-        else if (mouseAngle >= 315 || mouseAngle < 45) //right
+        else if (this.mouseAngle >= 7 * Math.PI / 4 || this.mouseAngle < Math.PI / 4) //right
             directionMod = 2;
         ///sets moveMod depending on how long moving
         var moveMod = Math.floor(this.animCounter) % 4;
@@ -68,7 +49,7 @@ function Player(initPack) {
         else
             var imgPicker = Img.playerSprite;
 
-        ctx.drawImage(imgPicker, moveMod * this.spriteW, directionMod * this.spriteH, this.spriteW, this.spriteH, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
+        ctx.drawImage(imgPicker, moveMod * this.spriteW, directionMod * this.spriteH, this.spriteW, this.spriteH, this.drawingX, this.drawingY, this.width, this.height);
     }
 
     this.drawDot = function() {
@@ -114,7 +95,6 @@ function Player(initPack) {
                 if (this.activePwrs[i])
                     this.numOfPwrs++;
             }
-            console.log(this.numOfPwrs);
 
             var pwrXMod;
             var pwrYMod;
@@ -141,17 +121,17 @@ function Player(initPack) {
 Player.list = {};
 
 function Bullet(initPack) {
-    Entity.call(this, initPack, Img.bullet.width);
-    this.drawSelf = function() {
-        var width = Img.bullet.width / 2;
-        var height = Img.bullet.height / 2;
-
-        var x = this.x - Player.list[selfId].x + canvasWidth / 2;
-        var y = this.y - Player.list[selfId].y + canvasHeight / 2;
-
-        ctx.drawImage(Img.bullet,
-            0, 0, Img.bullet.width, Img.bullet.height,
-            x - width / 2, y - height / 2, width, height);
+    Entity.call(this, initPack, Img.bullet);
+    this.draw = function() {
+        this.updatePos();
+        //rotates context to draw bullet correctly
+        ctx.translate(this.drawingX, this.drawingY);
+        ctx.rotate(-this.angle + Math.PI / 2);
+        //draws bullet
+        ctx.drawImage(Img.bullet, 0, 0);
+        //restores old canvas state
+        ctx.rotate(this.angle - Math.PI / 2);
+        ctx.translate(-this.drawingX, -this.drawingY);
     }
 
     Bullet.list[this.id] = this;
@@ -285,22 +265,32 @@ var time = 0;
 var partTime = 0;
 var displayEnd = false;
 var roundStarted = false;
-var mapEffects = {
-    recoil: {
-        on: false,
-        dx: 0,
-        dy: 0,
-        start: function(theta) {
-            this.on = true;
-            this.angle = theta;
-        },
-        update: function() {
-            this.dx = 2 * time * Math.cos(Player.list[selfId].mouseAngle / 180 * Math.PI);
-            this.dy = 2 * time * Math.sin(Player.list[selfId].mouseAngle / 180 * Math.PI);
-            console.log(this.dx);
-            if (true) {
-                this.on = false;
+var screenShake = {
+    active: false,
+    dx: 0,
+    dy: 0,
+    speed: 2,
+    duration: .1 * framerate, //coefficient = number of seconds
+    time: this.duration,
+    dFromOriginX: 0,
+    dFromOriginY: 0, //keeps track of distance from origin
+    start: function(theta) {
+        this.active = true;
+        this.angle = theta;
+        this.time = -this.duration;
+    },
+    draw: function() {
+        if (this.time <= this.duration) {
+            this.dx = this.speed * Math.sign(this.time) * Math.cos(this.angle);
+            this.dy = this.speed * Math.sign(this.time) * Math.sin(this.angle);
+            ctx.translate(this.dx, this.dy);
+            this.time++;
+        } else {
+            if (this.dFromOriginX !== 0 && this.dFromOriginY !== 0) {
+                ctx.translate(this.dFromOriginX, this.dFromOriginY); //eliminates discrepancy
+                this.dFromOriginX = 0, this.dFromOriginY = 0;
             }
+            this.active = false;
         }
     }
 }
@@ -320,20 +310,16 @@ setInterval(function() {
 
 function update() {
     for (var i in Player.list)
-        Player.list[i].update();
-    if (mapEffects.recoil.on)
-        mapEffects.recoil.update();
+        Player.list[i].updatePos();
 }
 
 function draw() {
+    screenShake.draw();
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    if (mapEffects.recoil.on) {
-        // ctx.translate(mapEffects.recoil.dx, mapEffects.recoil.dy);
-    }
     drawMap('floor');
     for (var i in Player.list) {
         if (!Player.list[i].underWallLayer) {
-            Player.list[i].draw("self");
+            Player.list[i].drawSelf();
         }
     }
     drawMap('walls');
@@ -342,19 +328,19 @@ function draw() {
     drawTime();
     for (var i in Player.list) {
         if (Player.list[i].underWallLayer) {
-            Player.list[i].draw("self");
+            Player.list[i].drawSelf();
         }
     }
     for (var i in Player.list) {
         Player.list[i].drawDot();
-        Player.list[i].draw("attributes")
+        Player.list[i].drawAttributes();
     }
     for (var i in Objective.list)
         Objective.list[i].drawSelf();
     for (var i in Powerup.list)
         Powerup.list[i].drawSelf();
     for (var i in Bullet.list)
-        Bullet.list[i].drawSelf();
+        Bullet.list[i].draw();
 }
 
 var roundPharse;
@@ -461,8 +447,8 @@ document.onkeyup = function(event) {
 }
 
 document.onmousedown = function(event) {
-    if (Player.list.hasOwnProperty(selfId) && Player.list[selfId].hasOwnProperty("mouseAngle"))
-        mapEffects.recoil.start(Player.list[selfId].mouseAngle);
+    if (Player.list.hasOwnProperty(selfId))
+        screenShake.start(selfMouseAngle);
     socket.emit('keyPress', {
         inputId: 'attack',
         state: true
@@ -475,11 +461,13 @@ document.onmouseup = function(event) {
     });
 }
 document.onmousemove = function(event) {
-    var x = -1 * (canvasWidth / 2) + event.clientX - 8;
-    var y = -1 * (canvasHeight / 2) + event.clientY - 8;
-    var angle = Math.atan2(y, x) / Math.PI * 180;
+    var x = event.clientX - canvasWidth / 2;
+    var y = event.clientY - canvasHeight / 2;
+    selfMouseAngle = -Math.atan2(y, x);
+    if (selfMouseAngle < 0)
+        selfMouseAngle = 2 * Math.PI + selfMouseAngle;
     socket.emit('keyPress', {
         inputId: 'mouseAngle',
-        state: angle
+        state: selfMouseAngle
     });
 }
