@@ -1,20 +1,20 @@
-"use strict";
+`use strict`;
 
-var express = require('express');
+var express = require(`express`);
 var app = express();
-var serv = require('http').Server(app);
+var serv = require(`http`).Server(app);
 
-app.get('/', function(req, res) {
-    res.sendFile(__dirname + '/client/index.html');
+app.get(`/`, function(req, res) {
+    res.sendFile(__dirname + `/client/index.html`);
 });
-app.use('/client', express.static(__dirname + '/client'));
+app.use(`/client`, express.static(__dirname + `/client`));
 
 serv.listen(process.env.PORT || 2000);
-console.log("Server started.");
+console.log(`Server started.`);
 
 //gets collision map and reads it into collisionText String
-var fs = require("fs");
-var collisionText = fs.readFileSync(__dirname + '/bin/collisionMap.txt', "utf-8");
+var fs = require(`fs`);
+var collisionText = fs.readFileSync(__dirname + `/bin/collisionMap.txt`, `utf-8`);
 
 var SOCKET_LIST = {};
 //Player img width and height
@@ -86,14 +86,14 @@ function Entity(param) {
         var xCU = Math.floor(x / pixelsPerCU);
         var yCU = Math.floor(y / pixelsPerCU);
         var index = yCU * 128 + xCU;
-        if (collisionText.charAt(index) === "1")
+        if (collisionText.charAt(index) === `1`)
             return true;
         else
             return false;
     }
 
     this.isAboveWall = function() {
-        if (this.getCollisionWithMap(this.x - PimgW, this.y - PimgH - 5, "2") || this.getCollisionWithMap(this.x + PimgW, this.y - PimgH - 5, "2") || this.getCollisionWithMap(this.x - PimgW, this.y, "2") || this.getCollisionWithMap(this.x + PimgW, this.y, "2") || this.getCollisionWithMap(this.x, this.y - PimgH - 5, "2")) {
+        if (this.getCollisionWithMap(this.x - PimgW, this.y - PimgH - 5, `2`) || this.getCollisionWithMap(this.x + PimgW, this.y - PimgH - 5, `2`) || this.getCollisionWithMap(this.x - PimgW, this.y, `2`) || this.getCollisionWithMap(this.x + PimgW, this.y, `2`) || this.getCollisionWithMap(this.x, this.y - PimgH - 5, `2`)) {
             return true;
         }
         return false;
@@ -105,7 +105,7 @@ function Entity(param) {
 function Player(param) {
     Entity.call(this, param);
     this.init();
-    this.number = "" + Math.floor(10 * Math.random());
+    this.number = `` + Math.floor(10 * Math.random());
     this.pressingRight = false;
     this.pressingLeft = false;
     this.pressingUp = false;
@@ -118,7 +118,7 @@ function Player(param) {
     this.animCounter = 1; //1 is the starting frame for this sprite//0 and 2
     this.isZombie = roundStarted;
     this.name = NAMES_LIST[this.id];
-    this.skins = "reg";
+    this.skins = `reg`;
     this.bCounter = 20;
     this.reloadTime = 5;
     this.partTimer = 0;
@@ -210,7 +210,7 @@ function Player(param) {
             angle: this.mouseAngle,
             x: this.x,
             y: this.y,
-            oneHitKill: this.mod.pwrs.hasOwnProperty("1HitKill"),
+            oneHitKill: this.mod.pwrs.hasOwnProperty(`1HitKill`),
         });
     }
 
@@ -293,29 +293,29 @@ Player.onConnect = function(socket) {
     var player = new Player({
         id: socket.id,
     });
-    socket.on('keyPress', function(data) {
-        if (data.inputId === 'left')
+    socket.on(`keyPress`, function(data) {
+        if (data.inputId === `left`)
             player.pressingLeft = data.state;
-        else if (data.inputId === 'right')
+        else if (data.inputId === `right`)
             player.pressingRight = data.state;
-        else if (data.inputId === 'up')
+        else if (data.inputId === `up`)
             player.pressingUp = data.state;
-        else if (data.inputId === 'down')
+        else if (data.inputId === `down`)
             player.pressingDown = data.state;
-        else if (data.inputId === 'attack')
+        else if (data.inputId === `attack`)
             player.pressingAttack = data.state;
-        else if (data.inputId === 'mouseAngle')
+        else if (data.inputId === `mouseAngle`)
             player.mouseAngle = data.state;
     });
 
-    socket.on('boughtHarambe', function(data) {
+    socket.on(`boughtHarambe`, function(data) {
         player.updateSkins(data);
     });
-    socket.on('updateScore', function(data) {
+    socket.on(`updateScore`, function(data) {
         player.score = data;
     });
 
-    socket.emit('init', {
+    socket.emit(`init`, {
         selfId: socket.id,
         player: Player.getAllInitPack(),
         bullet: Bullet.getAllInitPack(),
@@ -347,7 +347,7 @@ var Bullet = function(param) {
     self.init();
     self.id = Math.random();
     self.angle = param.angle;
-    console.log(self.angle / Math.PI + " " + Math.sin(self.angle));
+    console.log(self.angle / Math.PI + ` ` + Math.sin(self.angle));
     self.spdX = Math.cos(self.angle) * 20;
     self.spdY = -Math.sin(self.angle) * 20;
     self.parent = param.parent;
@@ -468,7 +468,7 @@ var Objective = function(param) {
             var p = Player.list[i];
             if (!p.isZombie) {
                 if (self.x - self.w < p.x + PimgW && self.x + self.w > p.x - PimgW && self.y - self.h < p.y + PimgH && self.y + self.h > p.y - PimgH && Player.list[this.id] != Player.list[i]) {
-                    console.log("gem detected");
+                    console.log(`gem detected`);
                     p.score += 10;
                     self.toRemove = true;
                 }
@@ -507,7 +507,7 @@ Objective.update = function() {
         if (obj.toRemove) {
             delete Objective.list[i];
             removePack.obj.push(obj.id);
-            console.log("obj has been removeed");
+            console.log(`obj has been removeed`);
         } else
             pack[i] = obj.getUpdatePack();
     }
@@ -575,18 +575,18 @@ function Powerup(param) {
 
         //modifies player based on type of poweru
         //in the 1HitKill, logic is one-line simple and handled in Player.shooTBullet
-        if (this.type === "bulletFrenzy")
+        if (this.type === `bulletFrenzy`)
             this.parent.mod.timeBetweenBullets /= 2;
-        if (this.type === "speedBurst")
+        if (this.type === `speedBurst`)
             this.parent.mod.spd *= 2;
     }
 
     this.removePowerupFromPlayer = function() {
         //undoes modifications on player based on type of powerup
-        //some kinds of powerups don't need remove logic (like 1HitKill)
-        if (this.type === "bulletFrenzy")
+        //some kinds of powerups don`t need remove logic (like 1HitKill)
+        if (this.type === `bulletFrenzy`)
             this.parent.mod.timeBetweenBullets *= 2;
-        if (this.type === "speedBurst")
+        if (this.type === `speedBurst`)
             this.parent.mod.spd /= 2;
         delete this.parent.mod.pwrs[this.type];
     }
@@ -621,18 +621,18 @@ function Powerup(param) {
     //assigns random powerup type
     switch (Math.floor(Math.random() * 3)) {
         case 0:
-            this.type = "bulletFrenzy";
+            this.type = `bulletFrenzy`;
             break;
         case 1:
-            this.type = "1HitKill";
+            this.type = `1HitKill`;
             break;
         case 2:
-            this.type = "speedBurst";
+            this.type = `speedBurst`;
             break;
     }
 
     //based on the type of powerup, assigns duration or maxUses
-    if (this.type === "bulletFrenzy" || this.type === "1HitKill" || this.type === "speedBurst") {
+    if (this.type === `bulletFrenzy` || this.type === `1HitKill` || this.type === `speedBurst`) {
         this.duration = 20;
         this.maxUses = 0;
         this.uses = this.maxUses;
@@ -672,39 +672,39 @@ var counter = 0;
 var pCounter = 0;
 var NAMES_LIST = [];
 var DISCONECTED_LIST = [];
-var io = require('socket.io')(serv, {});
-io.sockets.on('connection', function(socket) {
+var io = require(`socket.io`)(serv, {});
+io.sockets.on(`connection`, function(socket) {
     socket.id = counter + 1;
     SOCKET_LIST[socket.id] = socket;
     counter++;
 
-    socket.on('signIn', function(data) {
+    socket.on(`signIn`, function(data) {
         NAMES_LIST[socket.id] = data;
         Player.onConnect(socket);
         pCounter++;
-        socket.emit('signInResponse', {
+        socket.emit(`signInResponse`, {
             success: true
         });
 
     });
 
-    socket.on('disconnect', function() {
+    socket.on(`disconnect`, function() {
         delete SOCKET_LIST[socket.id];
         delete NAMES_LIST[socket.id];
         DISCONECTED_LIST.push(socket.id);
         pCounter--;
         Player.onDisconnect(socket);
     });
-    socket.on('sendMsgToServer', function(data) {
+    socket.on(`sendMsgToServer`, function(data) {
         var playerName = NAMES_LIST[socket.id];
-        io.emit('addToChat', playerName + ': ' + data);
+        io.emit(`addToChat`, playerName + `: ` + data);
     });
 
-    socket.on('evalServer', function(data) {
+    socket.on(`evalServer`, function(data) {
         if (!DEBUG)
             return;
         var res = eval(data);
-        socket.emit('evalAnswer', res);
+        socket.emit(`evalAnswer`, res);
     });
 
 
@@ -821,16 +821,16 @@ setInterval(function() {
     }
 
     if (newEntities) {
-        io.emit('init', initPack);
+        io.emit(`init`, initPack);
         for (var i in initPack) {
             initPack[i] = [];
         }
         newEntities = false;
     }
 
-    io.emit('update', pack);
-    io.emit('remove', removePack);
-    io.emit('roundInfo', {
+    io.emit(`update`, pack);
+    io.emit(`remove`, removePack);
+    io.emit(`roundInfo`, {
         timer: time,
         roundStarter: roundStarted,
         displayEnder: displayEnd

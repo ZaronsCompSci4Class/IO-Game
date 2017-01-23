@@ -1,3 +1,15 @@
 {
-    "extends": "google"
+    "parserOptions": {
+        "ecmaVersion": 5,
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+
+    "env": {
+        "browser": true
+    },
+    "plugins": [
+        "import"
+    ]
 }
