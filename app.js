@@ -1,4 +1,4 @@
-`use strict`;
+"use strict";
 
 var express = require(`express`);
 var app = express();
@@ -20,7 +20,7 @@ var SOCKET_LIST = {};
 //Player img width and height
 var PimgW = 18 / 2;
 var PimgH = 20 / 2;
-var mapWidth = 2048;
+var mapWidth = 2048
 var mapHeight = 2048;
 const pixelsPerCU = 16;
 var newEntities = false;
@@ -347,7 +347,6 @@ var Bullet = function(param) {
     self.init();
     self.id = Math.random();
     self.angle = param.angle;
-    console.log(self.angle / Math.PI + ` ` + Math.sin(self.angle));
     self.spdX = Math.cos(self.angle) * 20;
     self.spdY = -Math.sin(self.angle) * 20;
     self.parent = param.parent;

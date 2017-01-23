@@ -9,10 +9,8 @@ function Entity(initPack, imgParam) {
     this.height = imgParam.height / 2;
 
     this.updatePos = function() {
-        var relativeX = this.x - Player.list[selfId].x + canvasWidth / 2;
-        var relativeY = this.y - Player.list[selfId].y + canvasHeight / 2;
-        this.drawingX = relativeX - this.width / 2;
-        this.drawingY = relativeY - this.height / 2;
+        this.relativeX = this.x - Player.list[selfId].x + canvasWidth / 2;
+        this.relativeY = this.y - Player.list[selfId].y + canvasHeight / 2;
     }
 }
 
@@ -49,7 +47,8 @@ function Player(initPack) {
         else
             var imgPicker = Img.playerSprite;
 
-        ctx.drawImage(imgPicker, moveMod * this.spriteW, directionMod * this.spriteH, this.spriteW, this.spriteH, this.drawingX, this.drawingY, this.width, this.height);
+        ctx.drawImage(imgPicker, moveMod * this.spriteW, directionMod * this.spriteH, this.spriteW, this.spriteH,  this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
+
     }
 
     this.drawDot = function() {
@@ -125,13 +124,14 @@ function Bullet(initPack) {
     this.draw = function() {
         this.updatePos();
         //rotates context to draw bullet correctly
-        ctx.translate(this.drawingX, this.drawingY);
+        ctx.translate(this.relativeX - this.width / 2, this.relativeY - this.height / 2);
+
         ctx.rotate(-this.angle + Math.PI / 2);
         //draws bullet
         ctx.drawImage(Img.bullet, 0, 0);
         //restores old canvas state
         ctx.rotate(this.angle - Math.PI / 2);
-        ctx.translate(-this.drawingX, -this.drawingY);
+        ctx.translate(-this.relativeX + this.width / 2, -this.relativeY + this.height / 2);
     }
 
     Bullet.list[this.id] = this;
@@ -278,6 +278,7 @@ var screenShake = {
         this.active = true;
         this.angle = theta;
         this.time = -this.duration;
+        this.reset();
     },
     draw: function() {
         if (this.time <= this.duration) {
@@ -286,12 +287,15 @@ var screenShake = {
             ctx.translate(this.dx, this.dy);
             this.time++;
         } else {
-            if (this.dFromOriginX !== 0 && this.dFromOriginY !== 0) {
+            this.reset();
+            this.active = false;
+        }
+    },
+    reset: function() {
+        if (this.dFromOriginX !== 0 && this.dFromOriginY !== 0) {
                 ctx.translate(this.dFromOriginX, this.dFromOriginY); //eliminates discrepancy
                 this.dFromOriginX = 0, this.dFromOriginY = 0;
             }
-            this.active = false;
-        }
     }
 }
 socket.on('roundInfo', function(data) {
