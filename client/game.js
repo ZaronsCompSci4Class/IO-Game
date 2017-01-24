@@ -121,6 +121,9 @@ Player.list = {};
 
 function Bullet(initPack) {
     Entity.call(this, initPack, Img.bullet);
+    //starts shake when bullet spawned
+    screenShake.start(this.angle);
+
     this.draw = function() {
         this.updatePos();
         //rotates context to draw bullet correctly
@@ -269,7 +272,7 @@ var screenShake = {
     active: false,
     dx: 0,
     dy: 0,
-    speed: 2,
+    speed: 2, //constant speed of shake
     duration: .1 * framerate, //coefficient = number of seconds
     time: this.duration,
     dFromOriginX: 0,
@@ -283,8 +286,10 @@ var screenShake = {
     draw: function() {
         if (this.time <= this.duration) {
             this.dx = this.speed * Math.sign(this.time) * Math.cos(this.angle);
-            this.dy = this.speed * Math.sign(this.time) * Math.sin(this.angle);
+            this.dy = this.speed * -Math.sign(this.time) * Math.sin(this.angle);
             ctx.translate(this.dx, this.dy);
+            this.dFromOriginX += this.dx;
+            this.dFromOriginY += this.dy;
             this.time++;
         } else {
             this.reset();
@@ -292,8 +297,8 @@ var screenShake = {
         }
     },
     reset: function() {
-        if (this.dFromOriginX !== 0 && this.dFromOriginY !== 0) {
-                ctx.translate(this.dFromOriginX, this.dFromOriginY); //eliminates discrepancy
+        if (this.dFromOriginX !== 0 || this.dFromOriginY !== 0) {
+                ctx.translate(-this.dFromOriginX, -this.dFromOriginY); //eliminates discrepancy
                 this.dFromOriginX = 0, this.dFromOriginY = 0;
             }
     }
@@ -451,8 +456,6 @@ document.onkeyup = function(event) {
 }
 
 document.onmousedown = function(event) {
-    if (Player.list.hasOwnProperty(selfId))
-        screenShake.start(selfMouseAngle);
     socket.emit('keyPress', {
         inputId: 'attack',
         state: true

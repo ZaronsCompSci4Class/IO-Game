@@ -1,29 +1,29 @@
 "use strict";
 
-var express = require(`express`);
-var app = express();
-var serv = require(`http`).Server(app);
+const express = require(`express`);
+const app = express();
+const serv = require(`http`).Server(app);
 
 app.get(`/`, function(req, res) {
-    res.sendFile(__dirname + `/client/index.html`);
+    res.sendFile(`${__dirname}/client/index.html`);
 });
-app.use(`/client`, express.static(__dirname + `/client`));
+app.use(`/client`, express.static(`${__dirname}/client`));
 
 serv.listen(process.env.PORT || 2000);
 console.log(`Server started.`);
 
 //gets collision map and reads it into collisionText String
-var fs = require(`fs`);
-var collisionText = fs.readFileSync(__dirname + `/bin/collisionMap.txt`, `utf-8`);
+const fs = require(`fs`);
+const collisionText = fs.readFileSync(`${__dirname}/bin/collisionMap.txt`, `utf-8`);
 
-var SOCKET_LIST = {};
+let SOCKET_LIST = {};
 //Player img width and height
-var PimgW = 18 / 2;
-var PimgH = 20 / 2;
-var mapWidth = 2048
-var mapHeight = 2048;
+const PimgW = 18 / 2;
+const PimgH = 20 / 2;
+const mapWidth = 2048
+const mapHeight = 2048;
 const pixelsPerCU = 16;
-var newEntities = false;
+let newEntities = false;
 
 function Entity(param) {
     //lets the setInterval function know it will have to send a new init because a new Entity has been created
@@ -54,9 +54,9 @@ function Entity(param) {
     //method that checks for all collisions, returns boolean
     this.checkForCollision = function(x, y) {
         //checks for collisions with map borders
-        if (x < 0 || x + PimgW > mapWidth || y < 0 || y + PimgH > mapHeight)
+        if (x < 0 || x + PimgW > mapWidth || y < 0 || y + PimgH > mapHeight){
             return true;
-
+        }
         //checks within map array at each of the four corners
         //checks right side
         if (this.getCollisionWithMap(x - PimgW, y + PimgH) || this.getCollisionWithMap(x - PimgW, y + PimgH * 2)) {
@@ -68,8 +68,8 @@ function Entity(param) {
         }
 
         //checks for collisions against other players
-        for (var i in Player.list) {
-            var p = Player.list[i];
+        for (let i in Player.list) {
+            let p = Player.list[i];
             if (x - PimgW < p.x + PimgW && x + PimgW > p.x - PimgW && y - PimgH < p.y + PimgH && y + PimgH > p.y - PimgH && Player.list[this.id] != Player.list[i]) {
                 if (p.isZombie || this.isZombie) {
                     p.isZombie = true;
@@ -83,9 +83,9 @@ function Entity(param) {
 
     this.getCollisionWithMap = function(x, y) {
         //gets collision index with map collisionText
-        var xCU = Math.floor(x / pixelsPerCU);
-        var yCU = Math.floor(y / pixelsPerCU);
-        var index = yCU * 128 + xCU;
+        let xCU = Math.floor(x / pixelsPerCU);
+        let yCU = Math.floor(y / pixelsPerCU);
+        let index = yCU * 128 + xCU;
         if (collisionText.charAt(index) === `1`)
             return true;
         else
@@ -119,21 +119,16 @@ function Player(param) {
     this.isZombie = roundStarted;
     this.name = NAMES_LIST[this.id];
     this.skins = `reg`;
-    this.bCounter = 20;
     this.reloadTime = 5;
-    this.partTimer = 0;
     this.timer = 0;
-    this.hasMag = true; ////////////ammo in a clip
-    this.hasAmmo = true; /////////////havent used/ limits total ammo
     this.roundState = roundStarted;
 
-    ///powerups
-    this.bulletFrenzy = false;
-    this.pwrBFTimer = 0;
-    this.oneHitKill = false;
-    this.pwr1HitTimer = 0;
+    this.ammo = {
+        bullets: 20,
+        mags: 1,
+    }
 
-    //creating objects for modifiables and powerups
+    //object for modifiables and powerups
     this.mod = {
         pwrs: {},
         timeBetweenBullets: 4,
@@ -148,62 +143,41 @@ function Player(param) {
     }
     this.spawn();
 
-    var lastShotTime = partTime;
+    let lastShotTime = partTime;
 
     this.update = function() {
         this.updateSpd();
         this.updatePosition();
         if (roundStarted != this.roundState) {
             this.roundState = roundStarted;
-            this.partTimer = 0;
             this.timer = 0;
-            this.bCounter = 20;
-            this.hasMag = true;
-            this.hasAmmo = true;
-        }
-        /////////////////////Powerup checkers and timers
-        if (this.bulletFrenzy && this.pwrBFTimer === 0) {
-            this.pwrBFTimer = time;
-        }
-        if (time - this.pwrBFTimer >= 20) {
-            this.pwrBFTimer = 0;
-            this.bulletFrenzy = false;
-        }
-        if (this.oneHitKill && this.pwr1HitTimer === 0) {
-            this.pwr1HitTimer = time;
-        }
-        if (time - this.pwr1HitTimer >= 20) {
-            this.pwr1HitTimer = 0;
-            this.oneHitKill = false;
+            this.ammo.bullets = 20;
+            this.ammo.mags = 1;
         }
 
-        //shoots if mouse if pressed and round has started and reload time //***********remember to add only shoot at the start of the round
         if (this.pressingAttack && !this.isZombie) {
             //if has a magazine and ammo inside, and more than timeBetweenBullets time has passed after the last shot, shoot a new Bullet
-            if (this.hasMag && this.hasAmmo && partTime - lastShotTime >= this.mod.timeBetweenBullets && this.bCounter >= 0) {
+            if (partTime - lastShotTime >= this.mod.timeBetweenBullets && this.ammo.mags > 0) {
                 lastShotTime = partTime;
-                if (!roundStarted) {
-                    this.partTimer = 0;
-                    this.shootBullet();
-                } else {
-                    this.bCounter--;
-                    this.partTimer = 0;
-                    this.shootBullet();
-                    if (this.bCounter == 0) {
-                        this.hasMag = false;
+                this.shootBullet();
+                if (roundStarted) {
+                    this.ammo.bullets--;
+                    if (this.ammo.bullets == 0) {
+                        this.ammo.mags--;
                         this.timer = time;
                     }
                 }
             }
-        } else if (!roundStarted || (this.timer != 0 && this.bCounter == 0)) {
+        } else if (!roundStarted || (this.timer != 0 && this.ammo.bullets == 0)) {
             if ((this.bulletFrenzy && time - this.timer >= this.reloadTime / 2) || time - this.timer >= this.reloadTime) {
-                this.hasMag = true;
-                this.bCounter = 20;
+                this.ammo.mags = 1;
+                this.ammo.bullets = 20;
                 this.timer = 0;
             }
         }
         return this.getUpdatePack();
     }
+
     this.shootBullet = function(angle) {
         Bullet({
             parent: this.id,
@@ -215,29 +189,39 @@ function Player(param) {
     }
 
     this.updateSpd = function() {
-        if (this.pressingRight && this.pressingLeft)
+        if (this.pressingRight && this.pressingLeft){
             this.spdX = 0;
-        else if (this.pressingRight && !this.checkForCollision(this.x + this.mod.spd, this.y))
+        }
+        else if (this.pressingRight && !this.checkForCollision(this.x + this.mod.spd, this.y)){
             this.spdX = this.mod.spd;
-        else if (this.pressingLeft && !this.checkForCollision(this.x - this.mod.spd, this.y))
+        }
+        else if (this.pressingLeft && !this.checkForCollision(this.x - this.mod.spd, this.y)){
             this.spdX = -this.mod.spd;
-        else
+        }
+        else{
             this.spdX = 0;
+        }
 
-        if (this.pressingUp && this.pressingDown)
+        if (this.pressingUp && this.pressingDown){
             this.spdY = 0;
-        else if (this.pressingUp && !this.checkForCollision(this.x, this.y - this.mod.spd))
+        }
+        else if (this.pressingUp && !this.checkForCollision(this.x, this.y - this.mod.spd)){
             this.spdY = -this.mod.spd;
-        else if (this.pressingDown && !this.checkForCollision(this.x, this.y + this.mod.spd))
+        }
+        else if (this.pressingDown && !this.checkForCollision(this.x, this.y + this.mod.spd)){
             this.spdY = this.mod.spd;
-        else
+        }
+        else{
             this.spdY = 0;
+        }
 
         //counters movement and sets animCounter = to it
-        if (this.spdY != 0 || this.spdX != 0)
+        if (this.spdY != 0 || this.spdX != 0){
             this.animCounter += 0.2;
-        if (this.animCounter > 3)
+        }
+        if (this.animCounter > 3){
             this.animCounter = 0;
+        }
     }
 
     this.updateSkins = function(skin) {
@@ -259,7 +243,7 @@ function Player(param) {
             isZombie: this.isZombie,
             name: this.name,
             skins: this.skins,
-            bCounter: this.bCounter,
+            bCounter: this.ammo.bullets,
             bulletFrenzy: this.bulletFrenzy,
             oneHitKill: this.oneHitKill,
         };
@@ -271,14 +255,12 @@ function Player(param) {
             y: this.y,
             hp: this.hp,
             score: this.score,
-            /////////sending mouse angle//////////////////////////////////////////////////////////////////////////////////////////////
             mouseAngle: this.mouseAngle,
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             animCounter: this.animCounter,
             isZombie: this.isZombie,
             skins: this.skins,
             underWallLayer: this.isAboveWall(),
-            bCounter: this.bCounter,
+            bCounter: this.ammo.bullets,
             bulletFrenzy: this.bulletFrenzy,
             oneHitKill: this.oneHitKill,
         }
@@ -290,7 +272,7 @@ function Player(param) {
 
 Player.list = {};
 Player.onConnect = function(socket) {
-    var player = new Player({
+    let player = new Player({
         id: socket.id,
     });
     socket.on(`keyPress`, function(data) {
@@ -324,8 +306,8 @@ Player.onConnect = function(socket) {
     })
 }
 Player.getAllInitPack = function() {
-    var players = [];
-    for (var i in Player.list)
+    let players = [];
+    for (let i in Player.list)
         players.push(Player.list[i].getInitPack());
     return players;
 }
@@ -335,15 +317,15 @@ Player.onDisconnect = function(socket) {
     removePack.player.push(socket.id);
 }
 Player.update = function() {
-    var pack = {};
+    let pack = {};
     for (let i in Player.list) {
         pack[i] = Player.list[i].update();
     }
     return pack;
 }
 
-var Bullet = function(param) {
-    var self = new Entity(param);
+let Bullet = function(param) {
+    let self = new Entity(param);
     self.init();
     self.id = Math.random();
     self.angle = param.angle;
@@ -360,8 +342,8 @@ var Bullet = function(param) {
             self.toRemove = true;
         self.updatePosition();
 
-        for (var i in Player.list) {
-            var p = Player.list[i];
+        for (let i in Player.list) {
+            let p = Player.list[i];
             if (self.map === p.map && self.getDistance(p) < 32 && self.parent !== p.id && p.isZombie) {
                 if (self.oneHitKill)
                     p.hp -= 20;
@@ -369,7 +351,7 @@ var Bullet = function(param) {
                     p.hp -= 1;
 
                 if (p.hp <= 0) {
-                    var shooter = Player.list[self.parent];
+                    let shooter = Player.list[self.parent];
                     if (shooter)
                         shooter.score += 1;
                     p.hp = p.hpMax;
@@ -389,8 +371,8 @@ var Bullet = function(param) {
 
         //checks within map array at each of the four corners
         //checks right side
-        for (var i in Player.list) {
-            var p = Player.list[i];
+        for (let i in Player.list) {
+            let p = Player.list[i];
             if (this.getCollisionWithMap(x - 10, y + 10) || this.getCollisionWithMap(x - 10, y + 10 * 2)) {
                 return true;
             } else if (this.getCollisionWithMap(x + 10, y + 10) || this.getCollisionWithMap(x + 10, y + 10 * 2)) {
@@ -406,7 +388,7 @@ var Bullet = function(param) {
             id: self.id,
             x: self.x,
             y: self.y,
-            map: self.map,
+            angle: self.angle,
         };
     }
     self.getUpdatePack = function() {
@@ -414,7 +396,6 @@ var Bullet = function(param) {
             id: self.id,
             x: self.x,
             y: self.y,
-            angle: self.angle,
         };
     }
 
@@ -425,9 +406,9 @@ var Bullet = function(param) {
 Bullet.list = {};
 
 Bullet.update = function() {
-    var pack = {};
-    for (var i in Bullet.list) {
-        var bullet = Bullet.list[i];
+    let pack = {};
+    for (let i in Bullet.list) {
+        let bullet = Bullet.list[i];
         bullet.update();
         if (bullet.toRemove) {
             delete Bullet.list[i];
@@ -439,14 +420,14 @@ Bullet.update = function() {
 }
 
 Bullet.getAllInitPack = function() {
-        var bullets = [];
-        for (var i in Bullet.list)
+        let bullets = [];
+        for (let i in Bullet.list)
             bullets.push(Bullet.list[i].getInitPack());
         return bullets;
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var Objective = function(param) {
-    var self = new Entity(param);
+let Objective = function(param) {
+    let self = new Entity(param);
     self.id = Math.random();
     self.init();
     self.x = 1064;
@@ -463,8 +444,8 @@ var Objective = function(param) {
         if (displayEnd)
             self.toRemove = true;
 
-        for (var i in Player.list) {
-            var p = Player.list[i];
+        for (let i in Player.list) {
+            let p = Player.list[i];
             if (!p.isZombie) {
                 if (self.x - self.w < p.x + PimgW && self.x + self.w > p.x - PimgW && self.y - self.h < p.y + PimgH && self.y + self.h > p.y - PimgH && Player.list[this.id] != Player.list[i]) {
                     console.log(`gem detected`);
@@ -499,9 +480,9 @@ var Objective = function(param) {
 Objective.list = {};
 
 Objective.update = function() {
-    var pack = {};
-    for (var i in Objective.list) {
-        var obj = Objective.list[i];
+    let pack = {};
+    for (let i in Objective.list) {
+        let obj = Objective.list[i];
         obj.update();
         if (obj.toRemove) {
             delete Objective.list[i];
@@ -514,8 +495,8 @@ Objective.update = function() {
 }
 
 Objective.getAllInitPack = function() {
-    var objs = [];
-    for (var i in Objective.list)
+    let objs = [];
+    for (let i in Objective.list)
         objs.push(Objective.list[i].getInitPack());
     return objs;
 }
@@ -525,7 +506,36 @@ Objective.getAllInitPack = function() {
 function Powerup(param) {
     Entity.call(this, param);
 
-    //same public method to access Powerup updates if on player or still on map
+    this.id = Math.random();
+    this.init();
+    this.x = 1264;
+    this.y = 1024;
+    this.timer = time;
+    this.toRemove = false;
+    this.pickedUp = false;
+    this.w = (75 / 2);
+    this.h = (75 / 2);
+
+    //assigns random powerup type
+    switch (Math.floor(Math.random() * 3)) {
+        case 0:
+            this.type = `bulletFrenzy`;
+            break;
+        case 1:
+            this.type = `1HitKill`;
+            break;
+        case 2:
+            this.type = `speedBurst`;
+            break;
+    }
+    //based on the type of powerup, assigns duration or maxUses
+    if (this.type === `bulletFrenzy` || this.type === `1HitKill` || this.type === `speedBurst`) {
+        this.duration = 20;
+        this.maxUses = 0;
+        this.uses = this.maxUses;
+    }
+
+    //same method to access Powerup updates if on player or if still on map
     this.update = function() {
         if (this.pickedUp) {
             this.updateAsPlayerAttribute();
@@ -535,13 +545,13 @@ function Powerup(param) {
     }
 
     this.updateAsMapObject = function() {
-        //if has existed longer than 20 seconds, removes itthis
+        //if has existed longer than 20 seconds, removes this
         if (time - this.timer >= 20)
             this.toRemove = true;
 
         //checks for collisions with players
-        for (var i in Player.list) {
-            var p = Player.list[i];
+        for (let i in Player.list) {
+            let p = Player.list[i];
             if (!p.isZombie) {
                 //if collided, pass itthis to player
                 if (this.x - this.w < p.x + PimgW && this.x + this.w > p.x - PimgW && this.y - this.h < p.y + PimgH && this.y + this.h > p.y - PimgH && Player.list[this.id] != Player.list[i]) {
@@ -606,36 +616,6 @@ function Powerup(param) {
         };
     }
 
-    //initialized variables at bottom to follow convention and make code safe
-    this.id = Math.random();
-    this.init();
-    this.x = 1264;
-    this.y = 1024;
-    this.timer = time;
-    this.toRemove = false;
-    this.pickedUp = false;
-    this.w = (75 / 2);
-    this.h = (75 / 2);
-
-    //assigns random powerup type
-    switch (Math.floor(Math.random() * 3)) {
-        case 0:
-            this.type = `bulletFrenzy`;
-            break;
-        case 1:
-            this.type = `1HitKill`;
-            break;
-        case 2:
-            this.type = `speedBurst`;
-            break;
-    }
-
-    //based on the type of powerup, assigns duration or maxUses
-    if (this.type === `bulletFrenzy` || this.type === `1HitKill` || this.type === `speedBurst`) {
-        this.duration = 20;
-        this.maxUses = 0;
-        this.uses = this.maxUses;
-    }
 
     initPack.pwr.push(this.getInitPack());
     Powerup.list[this.id] = this;
@@ -644,9 +624,9 @@ function Powerup(param) {
 Powerup.list = {};
 
 Powerup.update = function() {
-    var pack = {};
-    for (var i in Powerup.list) {
-        var pwr = Powerup.list[i];
+    let pack = {};
+    for (let i in Powerup.list) {
+        let pwr = Powerup.list[i];
         pwr.update();
         if (pwr.toRemove) {
             delete Powerup.list[i];
@@ -658,20 +638,20 @@ Powerup.update = function() {
 }
 
 Powerup.getAllInitPack = function() {
-    var pwrs = [];
-    for (var i in Powerup.list)
+    let pwrs = [];
+    for (let i in Powerup.list)
         pwrs.push(Powerup.list[i].getInitPack());
     return pwrs;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var DEBUG = false;
-var counter = 0;
-var pCounter = 0;
-var NAMES_LIST = [];
-var DISCONECTED_LIST = [];
-var io = require(`socket.io`)(serv, {});
+const DEBUG = false;
+let counter = 0;
+let pCounter = 0;
+let NAMES_LIST = [];
+let DISCONECTED_LIST = [];
+const io = require(`socket.io`)(serv, {});
 io.sockets.on(`connection`, function(socket) {
     socket.id = counter + 1;
     SOCKET_LIST[socket.id] = socket;
@@ -695,14 +675,14 @@ io.sockets.on(`connection`, function(socket) {
         Player.onDisconnect(socket);
     });
     socket.on(`sendMsgToServer`, function(data) {
-        var playerName = NAMES_LIST[socket.id];
+        let playerName = NAMES_LIST[socket.id];
         io.emit(`addToChat`, playerName + `: ` + data);
     });
 
     socket.on(`evalServer`, function(data) {
         if (!DEBUG)
             return;
-        var res = eval(data);
+        let res = eval(data);
         socket.emit(`evalAnswer`, res);
     });
 
@@ -710,26 +690,56 @@ io.sockets.on(`connection`, function(socket) {
 
 });
 
-var initPack = {
+let initPack = {
     player: [],
     bullet: [],
     obj: [],
     pwr: []
 };
-var removePack = {
+let removePack = {
     player: [],
     bullet: [],
     obj: [],
     pwr: []
 };
 ///////////////Time
-var partTime = 0;
-var time = 0;
-var running = true;
+let partTime = 0;
+let time = 0;
 //////////////Round
-var roundStarted = false;
-var allZombies = false;
-var displayEnd = false;
+let roundStarted = false;
+let allZombies = false;
+let displayEnd = false;
+
+function resetTime() {
+    time = 0;
+}
+
+function resetPartTime() {
+    partTime = 0;
+}
+
+function isPlayerOffline(num) {
+    for (let i in DISCONECTED_LIST) {
+        if (num === DISCONECTED_LIST[i]){
+            return true;
+        }
+    }
+    return false;
+}
+
+function pickZombie() {
+    const playerArr = Object.keys(Player.list);
+    const zombieId = playerArr[Math.floor(Math.random() * playerArr.length)];
+    Player.list[zombieId].isZombie = true;
+}
+
+function resetZombie() {
+    for (let i in Player.list) {
+        Player.list[i].isZombie = false;
+        Player.list[i].hp = p.hpMax;
+    }
+    allZombies = false;
+}
 
 function gameTimer() {
     partTime++;
@@ -750,13 +760,15 @@ function gameTimer() {
             resetTime();
             roundStarted = !roundStarted;
             resetPartTime();
-            if (pCounter >= 1)
+            if (pCounter >= 1){
                 resetZombie();
+            }
         } else if (roundStarted) { ///////////if all plays are zombies ends round
             allZombies = true;
             for (let i in Player.list) {
-                if (!Player.list[i].isZombie)
+                if (!Player.list[i].isZombie){
                     allZombies = false;
+                }
             }
             if (allZombies) {
                 displayEnd = true;
@@ -777,42 +789,10 @@ function gameTimer() {
 
 }
 
-function resetTime() {
-    time = 0;
-}
-
-function resetPartTime() {
-    partTime = 0;
-}
-
-function isPlayerOffline(num) {
-    for (let i in DISCONECTED_LIST) {
-        if (num === DISCONECTED_LIST[i])
-            return true;
-    }
-    return false;
-}
-
-function pickZombie() {
-    var zNum;
-    var playerArr = Object.keys(Player.list);
-    zNum = playerArr[Math.floor(Math.random() * playerArr.length)];
-    Player.list[zNum].isZombie = true;
-}
-
-function resetZombie() {
-    for (var i in Player.list) {
-        var p = Player.list[i];
-        p.isZombie = false;
-        p.hp = p.hpMax;
-    }
-    allZombies = false;
-}
-
 setInterval(function() {
     gameTimer();
 
-    var pack = {
+    const pack = {
         player: Player.update(),
         bullet: Bullet.update(),
         obj: Objective.update(),
@@ -821,7 +801,7 @@ setInterval(function() {
 
     if (newEntities) {
         io.emit(`init`, initPack);
-        for (var i in initPack) {
+        for (let i in initPack) {
             initPack[i] = [];
         }
         newEntities = false;
@@ -832,13 +812,11 @@ setInterval(function() {
     io.emit(`roundInfo`, {
         timer: time,
         roundStarter: roundStarted,
-        displayEnder: displayEnd
+        displayEnder: displayEnd,
     });
 
     removePack.player = [];
     removePack.bullet = [];
     removePack.obj = [];
     removePack.pwr = [];
-
-
 }, 1000 / 25);

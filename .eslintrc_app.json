@@ -10,6 +10,8 @@
     "node": true
   },
   "rules": {
-    "quotes": ["error", "backtick"]
+    "quotes": ["error", "backtick"],
+    "indent": ["off"],
+    "space-before-function-paren": ["error", "never"]
   }
 }
