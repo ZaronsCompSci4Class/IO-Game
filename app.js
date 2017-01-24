@@ -20,36 +20,24 @@ let SOCKET_LIST = {};
 //Player img width and height
 const PimgW = 18 / 2;
 const PimgH = 20 / 2;
-const mapWidth = 2048
+const mapWidth = 2048;
 const mapHeight = 2048;
 const pixelsPerCU = 16;
 let newEntities = false;
 
 function Entity(param) {
-    //lets the setInterval function know it will have to send a new init because a new Entity has been created
+    //lets the setInterval function know it will have to send a new initPack because a new Entity has been created
     newEntities = true;
-    //detects if there is a collision with any player and only spawns when there is no collision
-    this.init = function() {
-        //declares all the this variables for all entities
-        if (param) {
-            if (param.x)
-                this.x = param.x;
-            if (param.y)
-                this.y = param.y;
-            if (param.map)
-                this.map = param.map;
-            if (param.id)
-                this.id = param.id;
-        }
-    }
+    //assigns all properties of param to this
+    Object.assign(this, param);
 
     this.updatePosition = function() {
         this.x += this.spdX;
         this.y += this.spdY;
-    }
+    };
     this.getDistance = function(pt) {
         return Math.sqrt(Math.pow(this.x - pt.x, 2) + Math.pow(this.y - pt.y, 2));
-    }
+    };
 
     //method that checks for all collisions, returns boolean
     this.checkForCollision = function(x, y) {
@@ -79,7 +67,7 @@ function Entity(param) {
             }
         }
         return false;
-    }
+    };
 
     this.getCollisionWithMap = function(x, y) {
         //gets collision index with map collisionText
@@ -90,21 +78,20 @@ function Entity(param) {
             return true;
         else
             return false;
-    }
+    };
 
     this.isAboveWall = function() {
         if (this.getCollisionWithMap(this.x - PimgW, this.y - PimgH - 5, `2`) || this.getCollisionWithMap(this.x + PimgW, this.y - PimgH - 5, `2`) || this.getCollisionWithMap(this.x - PimgW, this.y, `2`) || this.getCollisionWithMap(this.x + PimgW, this.y, `2`) || this.getCollisionWithMap(this.x, this.y - PimgH - 5, `2`)) {
             return true;
         }
         return false;
-    }
+    };
     return this;
 }
 
 
 function Player(param) {
     Entity.call(this, param);
-    this.init();
     this.number = `` + Math.floor(10 * Math.random());
     this.pressingRight = false;
     this.pressingLeft = false;
@@ -126,7 +113,7 @@ function Player(param) {
     this.ammo = {
         bullets: 20,
         mags: 1,
-    }
+    };
 
     //object for modifiables and powerups
     this.mod = {
@@ -140,7 +127,7 @@ function Player(param) {
             this.x = ((mapWidth - 100) - 100 + 1) * Math.random() + 100;
             this.y = ((mapHeight - 100) - 100 + 1) * Math.random() + 100;
         } while (this.checkForCollision(this.x, this.y));
-    }
+    };
     this.spawn();
 
     let lastShotTime = partTime;
@@ -176,7 +163,7 @@ function Player(param) {
             }
         }
         return this.getUpdatePack();
-    }
+    };
 
     this.shootBullet = function(angle) {
         Bullet({
@@ -186,7 +173,7 @@ function Player(param) {
             y: this.y,
             oneHitKill: this.mod.pwrs.hasOwnProperty(`1HitKill`),
         });
-    }
+    };
 
     this.updateSpd = function() {
         if (this.pressingRight && this.pressingLeft){
@@ -222,11 +209,11 @@ function Player(param) {
         if (this.animCounter > 3){
             this.animCounter = 0;
         }
-    }
+    };
 
     this.updateSkins = function(skin) {
         this.skins = skin;
-    }
+    };
 
     this.getInitPack = function() {
         return {
@@ -247,7 +234,7 @@ function Player(param) {
             bulletFrenzy: this.bulletFrenzy,
             oneHitKill: this.oneHitKill,
         };
-    }
+    };
     this.getUpdatePack = function() {
         return {
             id: this.id,
@@ -263,8 +250,8 @@ function Player(param) {
             bCounter: this.ammo.bullets,
             bulletFrenzy: this.bulletFrenzy,
             oneHitKill: this.oneHitKill,
-        }
-    }
+        };
+    };
     Player.list[this.id] = this;
     initPack.player.push(this.getInitPack());
     return this;
@@ -303,7 +290,7 @@ Player.onConnect = function(socket) {
         bullet: Bullet.getAllInitPack(),
         obj: Objective.getAllInitPack(),
         pwr: Powerup.getAllInitPack(),
-    })
+    });
 }
 Player.getAllInitPack = function() {
     let players = [];
@@ -326,7 +313,6 @@ Player.update = function() {
 
 let Bullet = function(param) {
     let self = new Entity(param);
-    self.init();
     self.id = Math.random();
     self.angle = param.angle;
     self.spdX = Math.cos(self.angle) * 20;
@@ -402,7 +388,7 @@ let Bullet = function(param) {
     Bullet.list[self.id] = self;
     initPack.bullet.push(self.getInitPack());
     return self;
-}
+};
 Bullet.list = {};
 
 Bullet.update = function() {
@@ -417,19 +403,18 @@ Bullet.update = function() {
             pack[i] = bullet.getUpdatePack();
     }
     return pack;
-}
+};
 
 Bullet.getAllInitPack = function() {
         let bullets = [];
         for (let i in Bullet.list)
             bullets.push(Bullet.list[i].getInitPack());
         return bullets;
-    }
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    };
+
 let Objective = function(param) {
     let self = new Entity(param);
     self.id = Math.random();
-    self.init();
     self.x = 1064;
     self.y = 1024;
     self.timer = time;
@@ -454,7 +439,7 @@ let Objective = function(param) {
                 }
             }
         }
-    }
+    };
 
     self.getInitPack = function() {
         return {
@@ -463,19 +448,19 @@ let Objective = function(param) {
             y: self.y,
             map: self.map,
         };
-    }
+    };
     self.getUpdatePack = function() {
         return {
             id: self.id,
             x: self.x,
             y: self.y,
         };
-    }
+    };
 
     Objective.list[self.id] = self;
     initPack.obj.push(self.getInitPack());
     return self;
-}
+};
 
 Objective.list = {};
 
@@ -492,22 +477,20 @@ Objective.update = function() {
             pack[i] = obj.getUpdatePack();
     }
     return pack;
-}
+};
 
 Objective.getAllInitPack = function() {
     let objs = [];
     for (let i in Objective.list)
         objs.push(Objective.list[i].getInitPack());
     return objs;
-}
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function Powerup(param) {
     Entity.call(this, param);
-
     this.id = Math.random();
-    this.init();
     this.x = 1264;
     this.y = 1024;
     this.timer = time;
@@ -542,7 +525,7 @@ function Powerup(param) {
         } else {
             this.updateAsMapObject();
         }
-    }
+    };
 
     this.updateAsMapObject = function() {
         //if has existed longer than 20 seconds, removes this
@@ -560,14 +543,14 @@ function Powerup(param) {
                 }
             }
         }
-    }
+    };
 
     this.updateAsPlayerAttribute = function() {
         //if has been active on player for more than duration, will remove effects, then delete itthis from their pwrs
         if (time - this.timer >= this.duration && this.uses === 0) {
-            removePowerupFromPlayer();
+            this.removePowerupFromPlayer();
         }
-    }
+    };
 
     this.addPowerupToPlayer = function() {
         //adds powerup to player and handles modifications, marks itthis for removal from Powerup.list
@@ -588,7 +571,7 @@ function Powerup(param) {
             this.parent.mod.timeBetweenBullets /= 2;
         if (this.type === `speedBurst`)
             this.parent.mod.spd *= 2;
-    }
+    };
 
     this.removePowerupFromPlayer = function() {
         //undoes modifications on player based on type of powerup
@@ -598,7 +581,7 @@ function Powerup(param) {
         if (this.type === `speedBurst`)
             this.parent.mod.spd /= 2;
         delete this.parent.mod.pwrs[this.type];
-    }
+    };
 
     this.getInitPack = function() {
         return {
@@ -607,14 +590,14 @@ function Powerup(param) {
             y: this.y,
             map: this.map,
         };
-    }
+    };
     this.getUpdatePack = function() {
         return {
             id: this.id,
             x: this.x,
             y: this.y,
         };
-    }
+    };
 
 
     initPack.pwr.push(this.getInitPack());
@@ -635,14 +618,14 @@ Powerup.update = function() {
             pack[i] = pwr.getUpdatePack();
     }
     return pack;
-}
+};
 
 Powerup.getAllInitPack = function() {
     let pwrs = [];
     for (let i in Powerup.list)
         pwrs.push(Powerup.list[i].getInitPack());
     return pwrs;
-}
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -718,15 +701,6 @@ function resetPartTime() {
     partTime = 0;
 }
 
-function isPlayerOffline(num) {
-    for (let i in DISCONECTED_LIST) {
-        if (num === DISCONECTED_LIST[i]){
-            return true;
-        }
-    }
-    return false;
-}
-
 function pickZombie() {
     const playerArr = Object.keys(Player.list);
     const zombieId = playerArr[Math.floor(Math.random() * playerArr.length)];
@@ -736,7 +710,7 @@ function pickZombie() {
 function resetZombie() {
     for (let i in Player.list) {
         Player.list[i].isZombie = false;
-        Player.list[i].hp = p.hpMax;
+        Player.list[i].hp = Player.list[i].hpMax;
     }
     allZombies = false;
 }
@@ -797,7 +771,7 @@ setInterval(function() {
         bullet: Bullet.update(),
         obj: Objective.update(),
         pwr: Powerup.update(),
-    }
+    };
 
     if (newEntities) {
         io.emit(`init`, initPack);
