@@ -24,6 +24,7 @@ const mapWidth = 2048;
 const mapHeight = 2048;
 const pixelsPerCU = 16;
 let newEntities = false;
+const framerate = 25;
 
 function Entity(param) {
     // lets the setInterval function know it will have to send a new initPack because a new Entity has been created
@@ -133,7 +134,7 @@ function Player(param) {
     };
     this.spawn();
 
-    let lastShotTime = partTime;
+    let lastShotTime = time;
 
     this.update = function() {
         this.updateSpd();
@@ -147,8 +148,8 @@ function Player(param) {
 
         if (this.pressingAttack && !this.isZombie) {
             // if has a magazine and ammo inside, and more than timeBetweenBullets time has passed after the last shot, shoot a new Bullet
-            if (partTime - lastShotTime >= this.mod.timeBetweenBullets && this.ammo.mags > 0) {
-                lastShotTime = partTime;
+            if (time - lastShotTime >= this.mod.timeBetweenBullets && this.ammo.mags > 0) {
+                lastShotTime = time;
                 this.shootBullet();
                 if (roundStarted) {
                     this.ammo.bullets -= 1;
@@ -425,7 +426,7 @@ let Objective = function(param) {
     self.h = (75 / 2);
 
     self.update = function() {
-        if (time - self.timer >= 20)
+        if ((time - self.timer) / framerate >= 20)
             self.toRemove = true;
 
         for (let i in Player.list) {
@@ -496,6 +497,7 @@ function Powerup(param) {
     this.pickedUp = false;
     this.w = (75 / 2);
     this.h = (75 / 2);
+    this.pickedUp = false;
 
     // assigns random powerup type
     switch (Math.floor(Math.random() * 3)) {
@@ -530,8 +532,8 @@ function Powerup(param) {
 
     this.updateAsMapObject = function() {
         // if has existed longer than 20 seconds, removes this
-        if (time - this.timer >= 20) {
-            this.toRemove = true;
+        if ((time - this.timer) / framerate >= 20) {
+            this.remove();
         }
         // checks for collisions with players
         for (let i in Player.list) {
@@ -539,6 +541,7 @@ function Powerup(param) {
             if (!p.isZombie) {
                 // if collided, pass this to player
                 if (this.x - this.w < p.x + PimgW && this.x + this.w > p.x - PimgW && this.y - this.h < p.y + PimgH && this.y + this.h > p.y - PimgH && Player.list[this.id] !== Player.list[i]) {
+                    this.remove();
                     this.parent = p;
                     this.addPowerupToPlayer();
                 }
@@ -547,23 +550,19 @@ function Powerup(param) {
     };
 
     this.updateAsPlayerAttribute = function() {
-        // if has been active on player for more than duration, will remove effects, then delete itthis from their pwrs
-        if (time - this.timer >= this.duration && this.uses === 0) {
-            this.removePowerupFromPlayer();
+        // if has been active on player for more than duration, will remove effects, then delete this from their pwrs
+        if ((time - this.timer) / framerate >= this.duration && this.uses === 0) {
+            this.remove();
         }
     };
 
     this.addPowerupToPlayer = function() {
         // adds powerup to player and handles modifications, marks itthis for removal from Powerup.list
         this.parent.score += 2;
-        this.pickedUp = true;
         this.timer = time;
-        this.toRemove = true;
+        this.remove();
+        this.pickedUp = true;
 
-        // if powerup already on, removes old and attaches new
-        if (this.parent.mod.pwrs[this.type] !== null) {
-            this.parent.mod.pwrs[this.type].removePowerupFromPlayer();
-        }
         this.parent.mod.pwrs[this.type] = this;
 
         // modifies player based on type of poweru
@@ -575,14 +574,18 @@ function Powerup(param) {
         }
     };
 
-    this.removePowerupFromPlayer = function() {
-        // undoes modifications on player based on type of powerup
-        // some kinds of powerups don`t need remove logic (like oneHitKill)
-        if (this.type === `bulletFrenzy`) {
-            this.parent.mod.timeBetweenBullets *= 2;
-        } else if (this.type === `speedBurst`) {
-            this.parent.mod.spd /= 2;
-            this.parent.mod.pwrs[this.type] = null;
+    this.remove = function() {
+        if (this.pickedUp) {
+            // undoes modifications on player based on type of powerup
+            // some kinds of powerups don`t need remove logic (like oneHitKill)
+            if (this.type === `bulletFrenzy`) {
+                this.parent.mod.timeBetweenBullets *= 2;
+            } else if (this.type === `speedBurst`) {
+                this.parent.mod.spd /= 2;
+                this.parent.mod.pwrs[this.type] = null;
+            }
+        } else {
+            this.toRemove = true;
         }
     };
 
@@ -687,20 +690,17 @@ let removePack = {
     pwr: [],
 };
 
-let partTime = 0;
 let time = 0;
 let sectionTime = 0;
 let roundStarted = false;
 let allZombies = false;
-// has  states displayingScores, preparing, starting, started
+// has states: displayingScores, preparing, started
 let roundState = `preparing`;
 const sectionDuration = {
     displayingScores: 10,
     preparing: 10,
     started: 60,
-    starting: 1,
 };
-const displayScoreLength = 10; // seconds to display scores for after round
 
 function pickZombie() {
     const playerArr = Object.keys(Player.list);
@@ -717,7 +717,6 @@ function resetZombie() {
 }
 
 function startRound() {
-    roundState = `starting`;
     sectionTime = 0;
     time = 0;
     roundStarted = true;
@@ -731,12 +730,14 @@ function startRound() {
 function endRound() {
     roundState = `displayingScores`;
     sectionTime = 0;
+    time = 0;
     for (var i in Objective.list) {
         Objective.list[i].toRemove = true;
     }
-    time = 0;
+    for (var i in Powerup.list) {
+        Powerup.list[i].remove();
+    }
     roundStarted = false;
-    partTime = 0;
     if (pCounter >= 1) {
         resetZombie();
     }
@@ -744,32 +745,30 @@ function endRound() {
 
 function gameTimer() {
     // increment game timer
-    partTime += 1;
+    time += 1;
     // only runs once per second
-    if (partTime % 25 === 0) {
-        time += 1;
+    if (time % 25 === 0) {
         sectionTime += 1;
         if (roundStarted) {
+            // checks if all players are zombies
             roundState = `started`;
-            // end round after 60 seconds
-            if (sectionTime >= sectionDuration.started) {
-                endRound();
-            }
-            // if all players are zombies, end game and give win to zombies
             allZombies = true;
             for (let i in Player.list) {
                 if (!Player.list[i].isZombie) {
                     allZombies = false;
                 }
             }
-            if (allZombies) {
-                resetZombie();
-                time = 0;
-                partTime = 0;
-                roundStarted = !roundStarted;
+            // end round after 60 seconds or if all players are zombies
+            if (sectionTime >= sectionDuration.started || allZombies) {
                 endRound();
             }
+            // spawn new obj and pwr every 15 seconds while game is started
+            if (sectionTime % 15 === 0) {
+                new Objective();
+                new Powerup();
+            }
         } else {
+            // moves to next roundState when time goes over sectionDuration
             if (sectionTime >= sectionDuration[roundState]) {
                 sectionTime = 0;
                 if (roundState === `displayingScores`) {
@@ -780,10 +779,6 @@ function gameTimer() {
 
             }
         }
-    } // if round is started and 20 seconds have passed then spawn an obj
-    if (roundStarted && roundState === `preparing` || roundState === `displayingScores` && time % 20 === 0) {
-        new Objective();
-        new Powerup();
     }
 }
 
@@ -797,6 +792,7 @@ setInterval(() => {
         pwr: Powerup.update(),
     };
 
+    //only sends initPack if new entity has been spawned
     if (newEntities) {
         io.emit(`init`, initPack);
         for (let i in initPack) {
@@ -808,7 +804,7 @@ setInterval(() => {
     io.emit(`remove`, removePack);
     io.emit(`roundInfo`, {
         timer: time,
-        roundState: roundState,
+        roundState,
         sectionDuration: sectionDuration[roundState],
         sectionTime,
         roundStarter: roundStarted,
@@ -818,4 +814,4 @@ setInterval(() => {
     removePack.bullet = [];
     removePack.obj = [];
     removePack.pwr = [];
-}, 1000 / 25);
+}, 1000 / framerate);

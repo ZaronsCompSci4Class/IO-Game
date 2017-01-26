@@ -365,9 +365,6 @@ var drawTime = function() {
         case 'preparing':
             roundInfo = 'Round starts in ' + (sectionDuration - sectionTime);
             break;
-        case 'starting':
-            roundInfo = 'Round starting!';
-            break;
         case 'started':
             roundInfo = 'Round ends in ' + (sectionDuration - sectionTime);
             break;
