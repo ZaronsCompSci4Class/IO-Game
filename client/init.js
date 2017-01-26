@@ -70,7 +70,7 @@ var chatInput = document.getElementById('chat-input');
 var chatForm = document.getElementById('chat-form');
 
 socket.on('addToChat', function(data) {
-    chatText.innerHTML += '<div>' + data + '</div>';
+    chatText.innerHTML += '<div>' + data.playerName + ': ' + data.message + '</div>';
 });
 socket.on('evalAnswer', function(data) {
     console.log(data);

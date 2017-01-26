@@ -59,6 +59,10 @@ h1 {
      top: 100px;
 }
 
+canvas#ctx{
+    cursor: crosshair;
+}
+
 #miniMap{
     width: 100px;
     height: 100px;

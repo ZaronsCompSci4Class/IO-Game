@@ -47,7 +47,7 @@ function Player(initPack) {
         else
             var imgPicker = Img.playerSprite;
 
-        ctx.drawImage(imgPicker, moveMod * this.spriteW, directionMod * this.spriteH, this.spriteW, this.spriteH,  this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
+        ctx.drawImage(imgPicker, moveMod * this.spriteW, directionMod * this.spriteH, this.spriteW, this.spriteH, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
 
     }
 
@@ -266,7 +266,9 @@ socket.on('remove', function(data) {
 /////////////////////////listens for time and round data from server
 var time = 0;
 var partTime = 0;
-var displayEnd = false;
+var roundState;
+var sectionDuration = 0;
+var sectionTime = 0;
 var roundStarted = false;
 var screenShake = {
     active: false,
@@ -298,15 +300,17 @@ var screenShake = {
     },
     reset: function() {
         if (this.dFromOriginX !== 0 || this.dFromOriginY !== 0) {
-                ctx.translate(-this.dFromOriginX, -this.dFromOriginY); //eliminates discrepancy
-                this.dFromOriginX = 0, this.dFromOriginY = 0;
-            }
+            ctx.translate(-this.dFromOriginX, -this.dFromOriginY); //eliminates discrepancy
+            this.dFromOriginX = 0, this.dFromOriginY = 0;
+        }
     }
 }
 socket.on('roundInfo', function(data) {
     time = data.timer;
+    sectionDuration = data.sectionDuration;
+    roundState = data.roundState;
     roundStarted = data.roundStarter;
-    displayEnd = data.displayEnder;
+    sectionTime = data.sectionTime;
 });
 
 setInterval(function() {
@@ -352,18 +356,27 @@ function draw() {
         Bullet.list[i].draw();
 }
 
-var roundPharse;
 var drawTime = function() {
-    if (!roundStarted && !displayEnd) {
-        roundPharse = 'Round starts in ' + (8 - time);
-    } else if (roundStarted && !displayEnd) {
-        roundPharse = 'Round ends in ' + (60 - time);
-    } else {
-        roundPharse = 'Review Scores! ' + (10 - time);
-        partTime = 0;
+    switch (roundState) {
+        case 'displayingScores':
+            roundInfo = 'Review Scores! ' + (sectionDuration - sectionTime);
+            partTime = 0;
+            break;
+        case 'preparing':
+            roundInfo = 'Round starts in ' + (sectionDuration - sectionTime);
+            break;
+        case 'starting':
+            roundInfo = 'Round starting!';
+            break;
+        case 'started':
+            roundInfo = 'Round ends in ' + (sectionDuration - sectionTime);
+            break;
+        default:
+            roundInfo = null;
+            break;
     }
 
-    if (!displayEnd) {
+    if (roundState !== 'displayingScores') {
         if (ctxDiv.style.display == 'block') {
             ctxDiv.style.display = 'none';
         }
@@ -380,7 +393,7 @@ var drawTime = function() {
     }
     ctx.font = '20px Arial';
     ctx.fillStyle = 'green';
-    ctx.fillText(roundPharse, 200, 30);
+    ctx.fillText(roundInfo, 200, 30);
 }
 
 var drawMap = function(part) {

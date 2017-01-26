@@ -1,17 +1,20 @@
 {
-  "extends": "airbnb",
-   "parserOptions": {
+    "extends": "airbnb",
+    "parserOptions": {
         "ecmaVersion": 6,
         "ecmaFeatures": {
             "jsx": true
         }
-  },
-  "env": {
-    "node": true
-  },
-  "rules": {
-    "quotes": ["error", "backtick"],
-    "indent": ["off"],
-    "space-before-function-paren": ["error", "never"]
-  }
+    },
+    "env": {
+        "node": true
+    },
+    "rules": {
+        "quotes": ["error", "backtick"],
+        "indent": ["off"],
+        "space-before-function-paren": ["error", "never"],
+        "no-plusplus": ["error", {
+            "allowForLoopAfterthoughts": true
+        }]
+    }
 }
