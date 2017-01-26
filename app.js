@@ -160,7 +160,7 @@ function Player(param) {
                 }
             }
         } else if (!roundStarted || (this.timer !== 0 && this.ammo.bullets === 0)) {
-            if ((this.bulletFrenzy && time - this.timer >= this.reloadTime / 2) || time - this.timer >= this.reloadTime) {
+            if ((time - this.timer) / framerate >= this.reloadTime) {
                 this.ammo.mags = 1;
                 this.ammo.bullets = 20;
                 this.timer = 0;

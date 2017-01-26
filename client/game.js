@@ -1,5 +1,7 @@
 var framerate = 1000 / 40;
 var selfMouseAngle;
+var mouseX;
+var mouseY;
 
 function Entity(initPack, imgParam) {
     for (var i in initPack) {
@@ -304,7 +306,19 @@ var screenShake = {
             this.dFromOriginX = 0, this.dFromOriginY = 0;
         }
     }
-}
+};
+// causes screen to oppose mouse movement
+var screenOpposeMouse = {
+    dFromOriginX: 0,
+    dFromOriginY: 0,
+    lastMouseX: 0,
+    lastMouseY: 0,
+    draw: function() {
+        var dx = lastMouseX - mouseX;
+        var dy = lastMouseY - mouseY;
+        ctx.translate(-dx, -dy);
+    },
+};
 socket.on('roundInfo', function(data) {
     time = data.timer;
     sectionDuration = data.sectionDuration;
@@ -478,9 +492,9 @@ document.onmouseup = function(event) {
     });
 }
 document.onmousemove = function(event) {
-    var x = event.clientX - canvasWidth / 2;
-    var y = event.clientY - canvasHeight / 2;
-    selfMouseAngle = -Math.atan2(y, x);
+    mouseX = event.clientX - canvasWidth / 2;
+    mouseY = event.clientY - canvasWidth / 2;
+    selfMouseAngle = -Math.atan2(mouseY, mouseX);
     if (selfMouseAngle < 0)
         selfMouseAngle = 2 * Math.PI + selfMouseAngle;
     socket.emit('keyPress', {
