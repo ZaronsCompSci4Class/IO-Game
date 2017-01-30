@@ -1,5 +1,6 @@
 # IO-Game
-The contents:
-- bin folder containing a raw, scaled down map file that can be updated and replaced. Some java files in package form to be easily opened, edited, and executed by bluej. Raw text file created by the java program through the map file that represents the map in text, is referred to by the server.
-- client folder containing the three documents and an img folder with images
-- app.js is the server's code
+
+Welcome to Zaron.io's Github page! This is a repository for the class to work on the game. If you want to work on the game, clone the repository, install the dependencies (express, socket.io, nvm), and update node version (`nvm install stable`). Use the eslint config files to lint code before submission. And don't forget, have fun!
+
+## How to Contribute ##
+See the wiki for more details. Also, don't forget: clean code, and never push to master.
