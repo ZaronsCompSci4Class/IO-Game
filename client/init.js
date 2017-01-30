@@ -6,11 +6,20 @@ ctx.canvas.width = window.innerWidth;
 ctx.canvas.height = window.innerHeight;
 var canvasWidth = ctx.canvas.width;
 var canvasHeight = ctx.canvas.height;
+
+
+// canvas ui elements
+var ctxUi = document.getElementById("ctx-ui").getContext("2d");
+ctxUi.canvas.width = window.innerWidth;
+ctxUi.canvas.height = window.innerHeight;
 ///mini map
 var canvasMini = document.getElementById("miniMap");
 var ctxMini = canvas.getContext("2d");
-var ctxMiniX = canvasWidth * .9;
-var ctxMiniY = canvasHeight * .025;
+ctxUi.miniX = canvasWidth * .85;
+ctxUi.miniY = canvasHeight * .05;
+ctxUi.miniSize = canvasWidth * .1;
+ctxUi.dotSize = ctxUi.miniSize * .05;
+
 
 var miniMapHolder = document.getElementById("miniMapHolder");
 //sign
@@ -115,3 +124,4 @@ Img.map.floor = new Image();
 Img.map.floor.src = '/client/img/floor.png';
 Img.map.walls = new Image();
 Img.map.walls.src = '/client/img/walls.png';
+var mapSize = Img.map.floor.width;

@@ -27,14 +27,12 @@ img {
     position: absolute;
     top: 5%;
     left: 10%;
-    
 }
 
 #signDiv-signIn {
-    position:absolute;
-    left:50%;
+    position: absolute;
+    left: 50%;
     border-radius: 15px;
-    
 }
 
 h1 {
@@ -42,75 +40,83 @@ h1 {
     text-align: center;
     size: 20px;
 }
-#gameDiv{
+
+#gameDiv {
     display: none;
 }
 
-#ctx-div{
-     border:5px solid #b8d2d3;
-     background:#c7e4e5;
-     border-radius: 15px;
-     width:300px;
-     height:300px;
-     margin: 0 auto;
-     padding: 0px;
-     position:absolute;
-     right: 100px;
-     top: 100px;
+#ctx-div {
+    border: 5px solid #b8d2d3;
+    background: #c7e4e5;
+    border-radius: 15px;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto;
+    padding: 0px;
+    position: absolute;
+    right: 100px;
+    top: 100px;
 }
 
-canvas#ctx{
+canvas#ctx {
     cursor: crosshair;
 }
 
-#miniMap{
-    width: 100px;
-    height: 100px;
-    position:absolute;
-    left:90%;
-    top:5%;
+canvas#ctx-ui {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
-#shop-div{
-    width:500px;
-    height:500px;
+#miniMap {
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    left: 90%;
+    top: 5%;
+}
+
+#shop-div {
+    width: 500px;
+    height: 500px;
     margin: 0 auto;
     padding: 0px;
 }
 
-#shop-button{
-     position:absolute;
-     left:90%;
-     top:93%;
+#shop-button {
+    position: absolute;
+    left: 90%;
+    top: 93%;
 }
 
-#shop-div-menu{
-     border:5px solid #b8d2d3;
-     background:#c7e4e5;
-     border-radius: 15px;
-     display:none;
-     width:300px;
-     height:300px;
-     margin: 0 auto;
-     padding: 0px;
-     position:absolute;
-     left: 100px;
-     top: 100px;
+#shop-div-menu {
+    border: 5px solid #b8d2d3;
+    background: #c7e4e5;
+    border-radius: 15px;
+    display: none;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto;
+    padding: 0px;
+    position: absolute;
+    left: 100px;
+    top: 100px;
 }
 
 #chat {
-	background-color: rgba(100, 100, 100, 0.4);
-	position: absolute;
-	left: 0;
-	top: 75%;
-	height: 25%;
-	width: 20%;
+    background-color: rgba(100, 100, 100, 0.4);
+    position: absolute;
+    left: 0;
+    top: 75%;
+    height: 25%;
+    width: 20%;
 }
+
 #chat-text {
-	height: 90%;
+    height: 90%;
 }
 
 #chat-input {
-	height: 100%;
-	width: 100%;
+    height: 100%;
+    width: 100%;
 }

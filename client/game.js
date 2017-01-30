@@ -14,6 +14,12 @@ function Entity(initPack, imgParam) {
         this.relativeX = this.x - Player.list[selfId].x + canvasWidth / 2;
         this.relativeY = this.y - Player.list[selfId].y + canvasHeight / 2;
     }
+
+    this.drawDot = function(color) {
+        ctxUi.fillStyle = this.getDotColor();
+        ctxUi.fillRect(ctxUi.miniX + this.x * ctxUi.miniSize / mapSize, ctxUi.miniY + this.y * ctxUi.miniSize / mapSize,
+            ctxUi.dotSize, ctxUi.dotSize);
+    }
 }
 
 function Player(initPack) {
@@ -53,14 +59,15 @@ function Player(initPack) {
 
     }
 
-    this.drawDot = function() {
-        if (this.id == selfId)
-            var dotPicker = Img.pDot;
-        else if (this.isZombie)
-            var dotPicker = Img.eDot;
-        else
-            var dotPicker = Img.fDot;
-        ctxMini.drawImage(dotPicker, 0, 0, dotPicker.width, dotPicker.height, ctxMiniX + this.x / 20.48, ctxMiniY + this.y / 20.48, dotPicker.width, dotPicker.height);
+    this.getDotColor = function() {
+        if (this.id == selfId) {
+            var dotColor = "yellow";
+        } else if (this.isZombie) {
+            var dotColor = "red";
+        } else {
+            var dotColor = "green";
+        }
+        return dotColor;
     }
 
     this.drawAttributes = function() {
@@ -70,8 +77,8 @@ function Player(initPack) {
         ctx.fillRect(this.relativeX - hpWidth / 2, this.relativeY - 40, hpWidth, 4);
         if (this.id == selfId) {
             if (this.bCounter != 0) {
-                ctx.fillStyle = 'green';
-                ctx.fillRect(canvasWidth * .98, canvasHeight * .025 + (20 - this.bCounter) * canvasHeight / 21, canvasWidth * .015, this.bCounter * canvasHeight / 21);
+                ctxUi.fillStyle = 'green';
+                ctxUi.fillRect(canvasWidth * .98, canvasHeight * .025 + (20 - this.bCounter) * canvasHeight / 21, canvasWidth * .015, this.bCounter * canvasHeight / 21);
                 this.partTimer = partTime;
             } else {
                 ctx.fillStyle = 'red';
@@ -108,8 +115,8 @@ function Player(initPack) {
                 pwrYMod = Img.pwrSprite / 2;
             }
             if (this.numOfPwrs >= 1) {
-                ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2, ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs, ctxMiniY, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2);
-                console.log("x " + ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs);
+                ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2, ctxUi.miniX - (Img.pwrSprite.width / 3) * this.numOfPwrs, ctxUi.miniY, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2);
+                console.log("x " + ctxUi.miniX - (Img.pwrSprite.width / 3) * this.numOfPwrs);
             }
         }
     }
@@ -129,14 +136,14 @@ function Bullet(initPack) {
     this.draw = function() {
         this.updatePos();
         //rotates context to draw bullet correctly
-        ctx.translate(this.relativeX - this.width / 2, this.relativeY - this.height / 2);
+        ctx.translate(this.relativeX, this.relativeY);
 
         ctx.rotate(-this.angle + Math.PI / 2);
         //draws bullet
-        ctx.drawImage(Img.bullet, 0, 0);
+        ctx.drawImage(Img.bullet, -this.width / 2, -this.height / 2);
         //restores old canvas state
         ctx.rotate(this.angle - Math.PI / 2);
-        ctx.translate(-this.relativeX + this.width / 2, -this.relativeY + this.height / 2);
+        ctx.translate(-this.relativeX, -this.relativeY);
     }
 
     Bullet.list[this.id] = this;
@@ -152,7 +159,10 @@ function Objective(initPack) {
         var y = this.y - Player.list[selfId].y + canvasHeight / 2;
 
         ctx.drawImage(Img.obj, 0, 0, Img.obj.width, Img.obj.height, x - this.width / 2, y - this.height / 2, this.width, this.height);
-        ctxMini.drawImage(Img.oDot, 0, 0, Img.oDot.width, Img.oDot.height, ctxMiniX + this.x / 20.48, ctxMiniY + this.y / 20.48, Img.oDot.width, Img.oDot.height);
+    }
+
+    this.getDotColor = function() {
+        return "blue";
     }
 
     Objective.list[this.id] = this;
@@ -179,7 +189,10 @@ function Powerup(initPack) {
         }
         ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, this.width / 3, this.height / 2, x - this.width / 3 / 2, y - this.height / 2 / 2, this.width / 3, this.height / 2);
 
-        ctxMini.drawImage(Img.oDot, 0, 0, Img.oDot.width, Img.oDot.height, ctxMiniX + this.x / 20.48, ctxMiniY + this.y / 20.48, Img.oDot.width, Img.oDot.height);
+    }
+
+    this.getDotColor = function() {
+        return "rgb(113, 250, 231)";
     }
 
     Powerup.list[this.id] = this;
@@ -271,7 +284,6 @@ var partTime = 0;
 var roundState;
 var sectionDuration = 0;
 var sectionTime = 0;
-var roundStarted = false;
 var screenShake = {
     active: false,
     dx: 0,
@@ -309,21 +321,23 @@ var screenShake = {
 };
 // causes screen to oppose mouse movement
 var screenOpposeMouse = {
-    dFromOriginX: 0,
-    dFromOriginY: 0,
-    lastMouseX: 0,
-    lastMouseY: 0,
+    lastTotalDisplacementX: 0,
+    lastTotalDisplacementY: 0,
+    modifier: .1,
     draw: function() {
-        var dx = lastMouseX - mouseX;
-        var dy = lastMouseY - mouseY;
-        ctx.translate(-dx, -dy);
+        var newTotalDisplacementX = this.modifier * mouseX;
+        var newTotalDisplacementY = this.modifier * mouseY;
+        var dx = this.lastTotalDisplacementX - newTotalDisplacementX;
+        var dy = this.lastTotalDisplacementY - newTotalDisplacementY;
+        this.lastTotalDisplacementX = newTotalDisplacementX;
+        this.lastTotalDisplacementY = newTotalDisplacementY;
+        ctx.translate(dx, dy);
     },
 };
 socket.on('roundInfo', function(data) {
     time = data.timer;
     sectionDuration = data.sectionDuration;
     roundState = data.roundState;
-    roundStarted = data.roundStarter;
     sectionTime = data.sectionTime;
 });
 
@@ -341,8 +355,10 @@ function update() {
 }
 
 function draw() {
+    screenOpposeMouse.draw();
     screenShake.draw();
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    ctxUi.clearRect(0, 0, canvasWidth, canvasHeight);
     drawMap('floor');
     for (var i in Player.list) {
         if (!Player.list[i].underWallLayer) {
@@ -402,9 +418,9 @@ var drawTime = function() {
             ctxDiv.style.display = 'block';
         }
     }
-    ctx.font = '20px Arial';
-    ctx.fillStyle = 'green';
-    ctx.fillText(roundInfo, 200, 30);
+    ctxUi.font = '20px Arial';
+    ctxUi.fillStyle = 'green';
+    ctxUi.fillText(roundInfo, 200, 30);
 }
 
 var drawMap = function(part) {
@@ -416,14 +432,13 @@ var drawMap = function(part) {
 }
 
 var drawMiniMap = function() {
-    var map = Img.miniMap;
-    ctxMini.drawImage(map, 0, 0, map.width, map.height, ctxMiniX, ctxMiniY, 100, 100);
+    ctxUi.drawImage(Img.miniMap, ctxUi.miniX, ctxUi.miniY, ctxUi.miniSize, ctxUi.miniSize);
 }
 
 var drawScore = function() {
-    ctx.font = '30px Arial';
-    ctx.fillStyle = 'green';
-    ctx.fillText(Player.list[selfId].score, 0, 30);
+    ctxUi.font = '30px Arial';
+    ctxUi.fillStyle = 'green';
+    ctxUi.fillText(Player.list[selfId].score, 0, 30);
 }
 
 document.onkeydown = function(event) {
@@ -493,7 +508,7 @@ document.onmouseup = function(event) {
 }
 document.onmousemove = function(event) {
     mouseX = event.clientX - canvasWidth / 2;
-    mouseY = event.clientY - canvasWidth / 2;
+    mouseY = event.clientY - canvasHeight / 2;
     selfMouseAngle = -Math.atan2(mouseY, mouseX);
     if (selfMouseAngle < 0)
         selfMouseAngle = 2 * Math.PI + selfMouseAngle;
