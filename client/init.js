@@ -2,15 +2,11 @@ var socket = io();
 
 var canvas = document.getElementById("ctx");
 var ctx = canvas.getContext("2d");
-ctx.canvas.width = window.innerWidth;
-ctx.canvas.height = window.innerHeight;
 var canvasWidth = ctx.canvas.width;
 var canvasHeight = ctx.canvas.height;
 
-var nativeWidth = 1920;
-var nativeHeight = 1080;
-var scaleFillNative = Math.max(canvasWidth / nativeWidth, canvasHeight / nativeHeight);
-ctx.setTransform(scaleFillNative, 0, 0, scaleFillNative, 0, 0);
+var scaleFillNative = 1 //Math.max(canvasWidth / nativeWidth, canvasHeight / nativeHeight);
+ctx.scale(scaleFillNative, scaleFillNative);
 
 if(scaleFillNative < 1){
     ctx.imageSmoothingEnabled = true; // turn it on for low res screens
@@ -75,12 +71,6 @@ socket.on('signInResponse', function(data) {
         gameDiv.style.display = 'inline-block';
     } else
         alert("Sign in unsuccessul.");
-});
-socket.on('signUpResponse', function(data) {
-    if (data.success) {
-        alert("Sign up successul.");
-    } else
-        alert("Sign up unsuccessul.");
 });
 
 //chat

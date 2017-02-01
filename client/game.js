@@ -32,9 +32,6 @@ function Player(initPack) {
     this.numOfPwrs = 0;
     this.width = (Img.playerSprite.width / 4);
     this.height = (Img.playerSprite.height / 4);
-    ///////////////sprite///////////////////
-    this.spriteW = Img.playerSprite.width / 4;
-    this.spriteH = Img.playerSprite.height / 4;
 
     this.drawSelf = function() {
         //sets directionMod depending on angle
@@ -57,7 +54,7 @@ function Player(initPack) {
         else
             var imgPicker = Img.playerSprite;
 
-        ctx.drawImage(imgPicker, moveMod * this.spriteW, directionMod * this.spriteH, this.spriteW, this.spriteH, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
+        ctx.drawImage(imgPicker, moveMod * this.width, directionMod * this.height, this.width, this.height, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
 
     }
 
@@ -192,7 +189,6 @@ function Powerup(initPack) {
             this.spriteCycle += .2;
         }
         var moveModX = Math.floor(this.spriteCycle) *  this.width;
-        console.log(moveModX);
 
         ctx.drawImage(Img.pwrChestSprite, moveModX, 0, this.spriteW, this.spriteH, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
 
@@ -435,7 +431,7 @@ var drawMap = function(part) {
     var x = canvasWidth / 2 - player.x;
     var y = canvasHeight / 2 - player.y;
     var map = Img.map[part];
-    ctx.drawImage(map, 0, 0, map.width, map.height, x, y, map.width, map.height);
+    ctx.drawImage(map, x, y);
 }
 
 var drawMiniMap = function() {

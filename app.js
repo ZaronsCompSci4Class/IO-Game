@@ -18,11 +18,11 @@ const collisionText = fs.readFileSync(`${__dirname}/bin/collisionMap.txt`, `utf-
 
 let SOCKET_LIST = {};
 // Player img width and height
-const PimgW = 18 / 2;
-const PimgH = 20 / 2;
-const mapWidth = 2048;
-const mapHeight = 2048;
-const pixelsPerCU = 16;
+const PimgW = 9 / 2;
+const PimgH = 11 / 2;
+const mapWidth = 1024;
+const mapHeight = 1024;
+const pixelsPerCU = 8;
 let newEntities = false;
 const framerate = 25;
 
@@ -252,7 +252,6 @@ function Player(param) {
     };
     Player.list[this.id] = this;
     initPack.player.push(this.getInitPack());
-    return this;
 }
 
 Player.list = {};

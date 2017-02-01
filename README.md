@@ -4,5 +4,3 @@ Welcome to Zaron.io's Github page! This is a repository for the class to work on
 
 ## How to Contribute ##
 See the wiki for more details. Also, don't forget: clean code, and never push to master.
-
-scaling factor (

@@ -1,5 +1,6 @@
 html,
-body {
+body,
+#gameDiv {
     display: block;
     width: 100%;
     height: 100%;
@@ -59,7 +60,13 @@ h1 {
 }
 
 canvas#ctx {
+    width: 100%;
+    margin: 0px;
     cursor: crosshair;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 canvas#ctx-ui {
