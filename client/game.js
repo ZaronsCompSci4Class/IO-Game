@@ -7,8 +7,8 @@ function Entity(initPack, imgParam) {
     for (var i in initPack) {
         this[i] = initPack[i];
     }
-    this.width = imgParam.width / 2;
-    this.height = imgParam.height / 2;
+    this.width = imgParam.width;
+    this.height = imgParam.height;
 
     this.updatePos = function() {
         this.relativeX = this.x - Player.list[selfId].x + canvasWidth / 2;
@@ -30,6 +30,8 @@ function Player(initPack) {
     this.oneHitKill = false;
     this.activePwrs = [];
     this.numOfPwrs = 0;
+    this.width = (Img.playerSprite.width / 4);
+    this.height = (Img.playerSprite.height / 4);
     ///////////////sprite///////////////////
     this.spriteW = Img.playerSprite.width / 4;
     this.spriteH = Img.playerSprite.height / 4;
@@ -171,23 +173,28 @@ function Objective(initPack) {
 Objective.list = {};
 
 function Powerup(initPack) {
-    Entity.call(this, initPack, Img.pwrSprite);
+    Entity.call(this, initPack, Img.pwrChestSprite);
+
+    // since is a spritesheet, actual sprite width = image width / sprites (there are 20 sprites)
+    this.spriteW = Img.pwrChestSprite.width / 20;
+    this.spriteH = Img.pwrChestSprite.height;
+    this.spriteCycle = 0;
+
+    this.width = this.spriteW;
+    this.height = this.spriteH;
+
     this.drawSelf = function() {
-
-        var x = this.x - Player.list[selfId].x + canvasWidth / 2;
-        var y = this.y - Player.list[selfId].y + canvasHeight / 2;
-
-        var pwrXMod = 0;
-        var pwrYMod = 0;
-        if (this.bulletFrenzy) {
-            pwrXMod = 0;
-            pwrYMod = 0;
+        this.updatePos();
+        var totalCycles = 20;
+        if(this.spriteCycle >= totalCycles){
+           this.spriteCycle = 0; 
+        }else{
+            this.spriteCycle += .2;
         }
-        if (this.oneHitKill) {
-            pwrXMod = Img.pwrSprite / 3 * 2;
-            pwrYMod = Img.pwrSprite / 2;
-        }
-        ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, this.width / 3, this.height / 2, x - this.width / 3 / 2, y - this.height / 2 / 2, this.width / 3, this.height / 2);
+        var moveModX = Math.floor(this.spriteCycle) *  this.width;
+        console.log(moveModX);
+
+        ctx.drawImage(Img.pwrChestSprite, moveModX, 0, this.spriteW, this.spriteH, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
 
     }
 

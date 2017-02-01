@@ -7,6 +7,16 @@ ctx.canvas.height = window.innerHeight;
 var canvasWidth = ctx.canvas.width;
 var canvasHeight = ctx.canvas.height;
 
+var nativeWidth = 1920;
+var nativeHeight = 1080;
+var scaleFillNative = Math.max(canvasWidth / nativeWidth, canvasHeight / nativeHeight);
+ctx.setTransform(scaleFillNative, 0, 0, scaleFillNative, 0, 0);
+
+if(scaleFillNative < 1){
+    ctx.imageSmoothingEnabled = true; // turn it on for low res screens
+}else{
+    ctx.imageSmoothingEnabled = false; // turn it off for high res screens.
+}
 
 // canvas ui elements
 var ctxUi = document.getElementById("ctx-ui").getContext("2d");
@@ -107,8 +117,8 @@ Img.bullet = new Image();
 Img.bullet.src = '/client/img/bullet.png';
 Img.obj = new Image();
 Img.obj.src = '/client/img/obj.png';
-Img.pwrSprite = new Image();
-Img.pwrSprite.src = '/client/img/Powerups.png';
+Img.pwrChestSprite = new Image();
+Img.pwrChestSprite.src = '/client/img/PowerupChestSheet.png';
 Img.pDot = new Image();
 Img.pDot.src = '/client/img/playerDot.png';
 Img.oDot = new Image();
