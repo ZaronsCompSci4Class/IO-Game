@@ -18,10 +18,9 @@ function Player(initPack) {
     Entity.call(this, initPack, Img.playerSprite);
     this.partTimer = 0;
     ///powerups
-    this.bulletFrenzy = false;
-    this.oneHitKill = false;
     this.activePwrs = [];
     this.numOfPwrs = 0;
+    this.reload = false;
     ///////////////sprite///////////////////
     this.spriteW = Img.playerSprite.width / 4;
     this.spriteH = Img.playerSprite.height / 4;
@@ -67,7 +66,10 @@ function Player(initPack) {
         ctx.fillStyle = 'green';
         ctx.fillRect(this.relativeX - hpWidth / 2, this.relativeY - 40, hpWidth, 4);
         if (this.id == selfId) {
-            if (this.bCounter != 0) {
+            ////////////reloading stuff
+            if(this.bCounter == 20)
+                this.reload = false;
+            if (this.bCounter != 0 && !this.reload) {
                 ctx.fillStyle = 'green';
                 ctx.fillRect(canvasWidth * .98, canvasHeight * .025 + (20 - this.bCounter) * canvasHeight / 21, canvasWidth * .015, this.bCounter * canvasHeight / 21);
                 this.partTimer = partTime;
@@ -76,7 +78,7 @@ function Player(initPack) {
                 if (this.bulletFrenzy)
                     ctx.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - this.partTimer) * .04) * 2);
                 else
-                    ctx.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - this.partTimer) * .04));
+                    ctx.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -((canvasHeight / 21 * this.bCounter) + (canvasHeight / 21) * 4 * ((partTime - this.partTimer) * .04)));////////////////////////becounter with the relaodingadfjksal;fj
             }
 
             ////////drawing powerup
@@ -107,7 +109,8 @@ function Player(initPack) {
             }
             if (this.numOfPwrs >= 1) {
                 ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2, ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs, ctxMiniY, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2);
-                console.log("x " + ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs);
+                console.log("belly");
+                //console.log("x " + ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs);
             }
         }
     }
@@ -433,7 +436,20 @@ document.onkeydown = function(event) {
         inputId: 'up',
         state: true
     });
-
+    if(event.keyCode === 82) {// reload r
+        Player.list[selfId].reload = true;
+        socket.emit('reload', true);
+    }
+    if (event.keyCode === 81) {// queue q
+        socket.emit('queue');
+    }
+    if (event.keyCode === 77) { // m for minimap *DOES NOT WORK YET*
+        if (miniMapHolder.style.display != 'none') {
+            miniMapHolder.style.display = 'none';
+        } else {
+            miniMapHolder.style.display = 'block';
+        }
+    }
 }
 document.onkeyup = function(event) {
     if (event.keyCode === 68) //d
@@ -456,13 +472,6 @@ document.onkeyup = function(event) {
         inputId: 'up',
         state: false
     });
-    else if (event.keyCode === 77) { // m
-        if (miniMapHolder.style.display != 'none') {
-            miniMapHolder.style.display = 'none';
-        } else {
-            miniMapHolder.style.display = 'block';
-        }
-    }
 }
 
 document.onmousedown = function(event) {
