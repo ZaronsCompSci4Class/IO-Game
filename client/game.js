@@ -9,6 +9,7 @@ function Entity(initPack, imgParam) {
     }
     this.width = imgParam.width;
     this.height = imgParam.height;
+    this.image = imgParam;
 
     this.updatePos = function() {
         this.relativeX = this.x - Player.list[selfId].x + canvasWidth / 2;
@@ -129,6 +130,12 @@ Player.list = {};
 
 function Bullet(initPack) {
     Entity.call(this, initPack, Img.bullet);
+
+    // since is a spritesheet, actual sprite width = image width / sprites (there are 20 sprites)
+    this.kTotalSpriteCycles = 6;
+    this.width = this.image.width / this.kTotalSpriteCycles;
+    this.height = this.image.height;
+
     //starts shake when bullet spawned
     screenShake.start(this.angle);
 
@@ -139,7 +146,7 @@ function Bullet(initPack) {
 
         ctx.rotate(-this.angle + Math.PI / 2);
         //draws bullet
-        ctx.drawImage(Img.bullet, -this.width / 2, -this.height / 2);
+        ctx.drawImage(this.image, -this.width / 2, -this.height / 2);
         //restores old canvas state
         ctx.rotate(this.angle - Math.PI / 2);
         ctx.translate(-this.relativeX, -this.relativeY);
@@ -173,24 +180,21 @@ function Powerup(initPack) {
     Entity.call(this, initPack, Img.pwrChestSprite);
 
     // since is a spritesheet, actual sprite width = image width / sprites (there are 20 sprites)
-    this.spriteW = Img.pwrChestSprite.width / 20;
-    this.spriteH = Img.pwrChestSprite.height;
+    this.kTotalSpriteCycles = 19;
+    this.width = Img.pwrChestSprite.width / kTotalSpriteCycles;
+    this.height = Img.pwrChestSprite.height;
     this.spriteCycle = 0;
-
-    this.width = this.spriteW;
-    this.height = this.spriteH;
 
     this.drawSelf = function() {
         this.updatePos();
-        var totalCycles = 20;
-        if(this.spriteCycle >= totalCycles){
-           this.spriteCycle = 0; 
-        }else{
-            this.spriteCycle += .2;
+        if (this.spriteCycle >= this.kTotalSpriteCycles) {
+            this.spriteCycle = 0;
+        } else {
+            this.spriteCycle += .3;
         }
-        var moveModX = Math.floor(this.spriteCycle) *  this.width;
+        var moveModX = Math.floor(this.spriteCycle) * this.width;
 
-        ctx.drawImage(Img.pwrChestSprite, moveModX, 0, this.spriteW, this.spriteH, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
+        ctx.drawImage(Img.pwrChestSprite, moveModX, 0, this.width, this.height, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
 
     }
 
@@ -360,7 +364,15 @@ function update() {
 function draw() {
     screenOpposeMouse.draw();
     screenShake.draw();
+
+    // Store the current transformation matrix
+    ctx.save();
+    // Use the identity matrix while clearing the canvas
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    // Restore the transform
+    ctx.restore();
+
     ctxUi.clearRect(0, 0, canvasWidth, canvasHeight);
     drawMap('floor');
     for (var i in Player.list) {
@@ -510,8 +522,8 @@ document.onmouseup = function(event) {
     });
 }
 document.onmousemove = function(event) {
-    mouseX = event.clientX - canvasWidth / 2;
-    mouseY = event.clientY - canvasHeight / 2;
+    mouseX = event.clientX - window.innerWidth / 2;
+    mouseY = event.clientY - window.innerHeight / 2;
     selfMouseAngle = -Math.atan2(mouseY, mouseX);
     if (selfMouseAngle < 0)
         selfMouseAngle = 2 * Math.PI + selfMouseAngle;

@@ -60,13 +60,7 @@ h1 {
 }
 
 canvas#ctx {
-    width: 100%;
-    margin: 0px;
     cursor: crosshair;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -webkit-crisp-edges;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
 }
 
 canvas#ctx-ui {
@@ -75,12 +69,13 @@ canvas#ctx-ui {
     left: 0;
 }
 
-#miniMap {
-    width: 100px;
-    height: 100px;
-    position: absolute;
-    left: 90%;
-    top: 5%;
+canvas {
+    width: 100%;
+    margin 0px;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 
 #shop-div {

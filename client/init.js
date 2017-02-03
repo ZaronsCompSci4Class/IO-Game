@@ -1,33 +1,28 @@
 var socket = io();
 
+var canvasWidth = 568;
+var canvasHeight = 432;
+
 var canvas = document.getElementById("ctx");
 var ctx = canvas.getContext("2d");
-var canvasWidth = ctx.canvas.width;
-var canvasHeight = ctx.canvas.height;
-
-var scaleFillNative = 1 //Math.max(canvasWidth / nativeWidth, canvasHeight / nativeHeight);
-ctx.scale(scaleFillNative, scaleFillNative);
-
-if(scaleFillNative < 1){
-    ctx.imageSmoothingEnabled = true; // turn it on for low res screens
-}else{
-    ctx.imageSmoothingEnabled = false; // turn it off for high res screens.
-}
+ctx.canvas.width = canvasWidth;
+ctx.canvas.height = canvasHeight;
+ctx.imageSmoothingEnabled = false;
 
 // canvas ui elements
-var ctxUi = document.getElementById("ctx-ui").getContext("2d");
-ctxUi.canvas.width = window.innerWidth;
-ctxUi.canvas.height = window.innerHeight;
-///mini map
-var canvasMini = document.getElementById("miniMap");
-var ctxMini = canvas.getContext("2d");
+var canvasUi = document.getElementById("ctx-ui");
+var ctxUi = canvasUi.getContext("2d");
+ctxUi.canvas.width = canvasWidth;
+ctxUi.canvas.height = canvasHeight;
+ctxUi.imageSmoothingEnabled = false;
+
+// for the mini map
 ctxUi.miniX = canvasWidth * .85;
 ctxUi.miniY = canvasHeight * .05;
 ctxUi.miniSize = canvasWidth * .1;
 ctxUi.dotSize = ctxUi.miniSize * .05;
 
 
-var miniMapHolder = document.getElementById("miniMapHolder");
 //sign
 var signDiv = document.getElementById('signDiv');
 var signDivUsername = document.getElementById('signDiv-username');
@@ -103,12 +98,12 @@ Img.playerSprite2 = new Image();
 Img.playerSprite2.src = '/client/img/zombieSprite.png';
 Img.harambeSprite = new Image();
 Img.harambeSprite.src = '/client/img/harambeSprite.png';
-Img.bullet = new Image();
-Img.bullet.src = '/client/img/bullet.png';
+Img.bulletSprite = new Image();
+Img.bulletSprite.src = '/client/img/bullet_sheet.png';
 Img.obj = new Image();
 Img.obj.src = '/client/img/obj.png';
 Img.pwrChestSprite = new Image();
-Img.pwrChestSprite.src = '/client/img/PowerupChestSheet.png';
+Img.pwrChestSprite.src = '/client/img/powerup_chest_sheet.png';
 Img.pDot = new Image();
 Img.pDot.src = '/client/img/playerDot.png';
 Img.oDot = new Image();
