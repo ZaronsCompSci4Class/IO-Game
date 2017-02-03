@@ -27,10 +27,9 @@ function Player(initPack) {
     Entity.call(this, initPack, Img.playerSprite);
     this.partTimer = 0;
     ///powerups
-    this.bulletFrenzy = false;
-    this.oneHitKill = false;
     this.activePwrs = [];
     this.numOfPwrs = 0;
+    this.reload = false;
     this.width = (Img.playerSprite.width / 4);
     this.height = (Img.playerSprite.height / 4);
 
@@ -76,9 +75,12 @@ function Player(initPack) {
         ctx.fillStyle = 'green';
         ctx.fillRect(this.relativeX - hpWidth / 2, this.relativeY - 40, hpWidth, 4);
         if (this.id == selfId) {
-            if (this.bCounter != 0) {
-                ctxUi.fillStyle = 'green';
-                ctxUi.fillRect(canvasWidth * .98, canvasHeight * .025 + (20 - this.bCounter) * canvasHeight / 21, canvasWidth * .015, this.bCounter * canvasHeight / 21);
+            ////////////reloading stuff
+            if(this.bCounter == 20)
+                this.reload = false;
+            if (this.bCounter != 0 && !this.reload) {
+                ctx.fillStyle = 'green';
+                ctx.fillRect(canvasWidth * .98, canvasHeight * .025 + (20 - this.bCounter) * canvasHeight / 21, canvasWidth * .015, this.bCounter * canvasHeight / 21);
                 this.partTimer = partTime;
             } else {
                 ctx.fillStyle = 'red';
@@ -115,8 +117,9 @@ function Player(initPack) {
                 pwrYMod = Img.pwrSprite / 2;
             }
             if (this.numOfPwrs >= 1) {
-                ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2, ctxUi.miniX - (Img.pwrSprite.width / 3) * this.numOfPwrs, ctxUi.miniY, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2);
-                console.log("x " + ctxUi.miniX - (Img.pwrSprite.width / 3) * this.numOfPwrs);
+                ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2, ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs, ctxMiniY, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2);
+                console.log("belly");
+                //console.log("x " + ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs);
             }
         }
     }
@@ -291,6 +294,7 @@ var partTime = 0;
 var roundState;
 var sectionDuration = 0;
 var sectionTime = 0;
+var roundStarted = false;
 var screenShake = {
     active: false,
     dx: 0,
@@ -345,6 +349,7 @@ socket.on('roundInfo', function(data) {
     time = data.timer;
     sectionDuration = data.sectionDuration;
     roundState = data.roundState;
+    roundStarted = data.roundStarter;
     sectionTime = data.sectionTime;
 });
 
@@ -477,7 +482,20 @@ document.onkeydown = function(event) {
         inputId: 'up',
         state: true
     });
-
+    if(event.keyCode === 82) {// reload r
+        Player.list[selfId].reload = true;
+        socket.emit('reload', true);
+    }
+    if (event.keyCode === 81) {// queue q
+        socket.emit('queue');
+    }
+    if (event.keyCode === 77) { // m for minimap *DOES NOT WORK YET*
+        if (miniMapHolder.style.display != 'none') {
+            miniMapHolder.style.display = 'none';
+        } else {
+            miniMapHolder.style.display = 'block';
+        }
+    }
 }
 document.onkeyup = function(event) {
     if (event.keyCode === 68) //d

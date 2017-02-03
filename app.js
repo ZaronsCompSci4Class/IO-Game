@@ -106,15 +106,20 @@ function Player(param) {
     this.animCounter = 1; // 1 is the starting frame for this sprite 0 and 2
     this.isZombie = roundStarted;
     this.skins = `reg`;
+    this.reloadTimeMax = 5;
     this.reloadTime = 5;
     this.timer = 0;
     this.roundState = roundStarted;
+    this.reload = false;
+    this.pwrId = null;
 
     this.ammo = {
         bullets: 20,
         mags: 1,
     };
-
+    
+    //Creates an array of active powerups
+    this.activeMods = {};
     // object for modifiables and powerups
     this.mod = {
         pwrs: {
@@ -144,11 +149,21 @@ function Player(param) {
             this.timer = 0;
             this.ammo.bullets = 20;
             this.ammo.mags = 1;
+            this.reload = false;
         }
 
-        if (this.pressingAttack && !this.isZombie) {
+        if (!this.isZombie) {
+            
+            //if user presses r to reload
+            if(this.reload){
+                this.ammo.mags -= 1;
+                this.timer = time;
+                this.reload = false;
+                this.reloadTime = this.reloadTimeMax - (this.ammo.bullets*this.reloadTimeMax/20);
+            }
+            
             // if has a magazine and ammo inside, and more than timeBetweenBullets time has passed after the last shot, shoot a new Bullet
-            if (time - lastShotTime >= this.mod.timeBetweenBullets && this.ammo.mags > 0) {
+            if (this.pressingAttack && time - lastShotTime >= this.mod.timeBetweenBullets && this.ammo.mags > 0) {
                 lastShotTime = time;
                 this.shootBullet();
                 if (roundStarted) {
@@ -159,11 +174,15 @@ function Player(param) {
                     }
                 }
             }
-        } else if (!roundStarted || (this.timer !== 0 && this.ammo.bullets === 0)) {
-            if ((time - this.timer) / framerate >= this.reloadTime) {
-                this.ammo.mags = 1;
-                this.ammo.bullets = 20;
-                this.timer = 0;
+            
+            if (this.ammo.bullets < 20 && (!roundStarted || this.timer !== 0)) {
+                if ((time - this.timer) / framerate >= this.reloadTime) {
+                    this.ammo.mags = 1;
+                    this.ammo.bullets = 20;
+                    this.timer = 0;
+                    this.reload = false;
+                    this.reloadTime = this.reloadTimeMax;
+                }
             }
         }
         return this.getUpdatePack();
@@ -178,7 +197,7 @@ function Player(param) {
             oneHitKill: this.mod.pwrs[`oneHitKill`] !== null,
         });
     };
-
+    
     this.updateSpd = function() {
         if (this.pressingRight && this.pressingLeft) {
             this.spdX = 0;
@@ -229,8 +248,7 @@ function Player(param) {
             name: this.name,
             skins: this.skins,
             bCounter: this.ammo.bullets,
-            bulletFrenzy: this.bulletFrenzy,
-            oneHitKill: this.oneHitKill,
+            activeMods: this.activeMods,
         };
     };
     this.getUpdatePack = function() {
@@ -246,8 +264,7 @@ function Player(param) {
             skins: this.skins,
             underWallLayer: this.isAboveWall(),
             bCounter: this.ammo.bullets,
-            bulletFrenzy: this.bulletFrenzy,
-            oneHitKill: this.oneHitKill,
+            activeMods: this.activeMods,
         };
     };
     Player.list[this.id] = this;
@@ -273,6 +290,17 @@ Player.onConnect = function(socket, name) {
             player.pressingAttack = data.state;
         else if (data.inputId === `mouseAngle`)
             player.mouseAngle = data.state;
+    });
+    
+    socket.on('reload', function(data) {
+        player.reload = data;
+    });
+    
+    socket.on('queue', function() {
+        console.log(player.pwrId);
+        if(player.pwrId != null){
+            PlayerPowerups[player.pwrId].applyPwr();
+        }
     });
 
     socket.on(`boughtHarambe`, function(data) {
@@ -522,7 +550,7 @@ function Powerup(param) {
 
     // same method to access Powerup updates if on player or if still on map
     this.update = function() {
-        if (this.pickedUp) {
+        if(this.pickedUp) {
             this.updateAsPlayerAttribute();
         } else {
             this.updateAsMapObject();
@@ -540,7 +568,6 @@ function Powerup(param) {
             if (!p.isZombie) {
                 // if collided, pass this to player
                 if (this.x - this.w < p.x + PimgW && this.x + this.w > p.x - PimgW && this.y - this.h < p.y + PimgH && this.y + this.h > p.y - PimgH && Player.list[this.id] !== Player.list[i]) {
-                    this.remove();
                     this.parent = p;
                     this.addPowerupToPlayer();
                 }
@@ -552,18 +579,26 @@ function Powerup(param) {
         // if has been active on player for more than duration, will remove effects, then delete this from their pwrs
         if ((time - this.timer) / framerate >= this.duration && this.uses === 0) {
             this.remove();
+            console.log("time is up");
         }
     };
 
     this.addPowerupToPlayer = function() {
-        // adds powerup to player and handles modifications, marks itthis for removal from Powerup.list
+        // adds powerup to player and handles modifications
         this.parent.score += 2;
-        this.timer = time;
-        this.remove();
         this.pickedUp = true;
-
+        this.parent.pwrId = this.id;
+        console.log("value: " + this.parent.pwrId);
+        console.log(this.type);
+         //marks itthis for removal from Powerup.list
+         this.toRemove = true;
+    };
+    
+    this.applyPwr = function(){
+        console.log("q works");
+        this.parent.activeMods[this.pwrId] = (this.type);
         this.parent.mod.pwrs[this.type] = this;
-
+        this.timer = time;
         // modifies player based on type of poweru
         // in the oneHitKill, logic is one-line simple and handled in Player.shootBullet
         if (this.type === `bulletFrenzy`) {
@@ -571,10 +606,15 @@ function Powerup(param) {
         } else if (this.type === `speedBurst`) {
             this.parent.mod.spd *= 2;
         }
-    };
+        this.parent.pwrId = null;
+    }
 
     this.remove = function() {
         if (this.pickedUp) {
+            this.parent.pwrId = null;
+            console.log("pene");
+            //loops to find the pwr than removes it out
+            delete this.parent.activeMods[this.id];
             // undoes modifications on player based on type of powerup
             // some kinds of powerups don`t need remove logic (like oneHitKill)
             if (this.type === `bulletFrenzy`) {
@@ -583,6 +623,9 @@ function Powerup(param) {
                 this.parent.mod.spd /= 2;
                 this.parent.mod.pwrs[this.type] = null;
             }
+            //removes from PlayerPowerups
+            delete PlayerPowerups[this.id];
+            this.toRemove = true;
         } else {
             this.toRemove = true;
         }
@@ -607,9 +650,11 @@ function Powerup(param) {
 
     initPack.pwr.push(this.getInitPack());
     Powerup.list[this.id] = this;
+    PlayerPowerups[this.id] = this;
 }
 
 Powerup.list = {};
+var PlayerPowerups = {};
 
 Powerup.update = function() {
     const pack = {};
@@ -622,6 +667,10 @@ Powerup.update = function() {
         } else {
             pack[i] = pwr.getUpdatePack();
         }
+    }
+    for (let i in PlayerPowerups) {
+        const pwr2 = PlayerPowerups[i];
+        pwr2.update();
     }
     return pack;
 };
