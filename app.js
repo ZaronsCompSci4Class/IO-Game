@@ -189,7 +189,7 @@ function Player(param) {
     };
 
     this.shootBullet = function(angle) {
-        Bullet({
+        new Bullet({
             parent: this.id,
             angle: this.mouseAngle,
             x: this.x,
@@ -445,8 +445,8 @@ Bullet.getAllInitPack = function() {
 let Objective = function(param) {
     let self = new Entity(param);
     self.id = Math.random();
-    self.x = 1064;
-    self.y = 1024;
+    self.x = 554;
+    self.y = 324;
     self.timer = time;
     self.toRemove = false;
     self.w = (75 / 2);
@@ -517,8 +517,8 @@ Objective.getAllInitPack = function() {
 function Powerup(param) {
     Entity.call(this, param);
     this.id = Math.random();
-    this.x = 1264;
-    this.y = 1024;
+    this.x = 264;
+    this.y = 24;
     this.timer = time;
     this.toRemove = false;
     this.pickedUp = false;

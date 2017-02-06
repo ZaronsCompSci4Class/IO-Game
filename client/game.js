@@ -7,9 +7,15 @@ function Entity(initPack, imgParam) {
     for (var i in initPack) {
         this[i] = initPack[i];
     }
-    this.width = imgParam.width;
-    this.height = imgParam.height;
+
     this.image = imgParam;
+    if (this.image.hasOwnProperty("totalSpriteCycles")) {
+        this.width = imgParam.width / this.image.totalSpriteCycles;
+        this.spriteCycle = 0;
+    } else {
+        this.width = imgParam.width;
+    }
+    this.height = imgParam.height;
 
     this.updatePos = function() {
         this.relativeX = this.x - Player.list[selfId].x + canvasWidth / 2;
@@ -20,6 +26,15 @@ function Entity(initPack, imgParam) {
         ctxUi.fillStyle = this.getDotColor();
         ctxUi.fillRect(ctxUi.miniX + this.x * ctxUi.miniSize / mapSize, ctxUi.miniY + this.y * ctxUi.miniSize / mapSize,
             ctxUi.dotSize, ctxUi.dotSize);
+    }
+
+    this.getCycleMod = function() {
+        if (this.spriteCycle >= this.image.totalSpriteCycles) {
+            this.spriteCycle = 0;
+        } else {
+            this.spriteCycle += .3;
+        }
+        return Math.floor(this.spriteCycle) * this.width;
     }
 }
 
@@ -76,11 +91,11 @@ function Player(initPack) {
         ctx.fillRect(this.relativeX - hpWidth / 2, this.relativeY - 40, hpWidth, 4);
         if (this.id == selfId) {
             ////////////reloading stuff
-            if(this.bCounter == 20)
+            if (this.bCounter == 20)
                 this.reload = false;
             if (this.bCounter != 0 && !this.reload) {
-                ctx.fillStyle = 'green';
-                ctx.fillRect(canvasWidth * .98, canvasHeight * .025 + (20 - this.bCounter) * canvasHeight / 21, canvasWidth * .015, this.bCounter * canvasHeight / 21);
+                ctxUi.fillStyle = 'green';
+                ctxUi.fillRect(canvasWidth * .98, canvasHeight * .025 + (20 - this.bCounter) * canvasHeight / 21, canvasWidth * .015, this.bCounter * canvasHeight / 21);
                 this.partTimer = partTime;
             } else {
                 ctx.fillStyle = 'red';
@@ -132,12 +147,7 @@ function Player(initPack) {
 Player.list = {};
 
 function Bullet(initPack) {
-    Entity.call(this, initPack, Img.bullet);
-
-    // since is a spritesheet, actual sprite width = image width / sprites (there are 20 sprites)
-    this.kTotalSpriteCycles = 6;
-    this.width = this.image.width / this.kTotalSpriteCycles;
-    this.height = this.image.height;
+    Entity.call(this, initPack, Img.bulletSprite);
 
     //starts shake when bullet spawned
     screenShake.start(this.angle);
@@ -183,21 +193,15 @@ function Powerup(initPack) {
     Entity.call(this, initPack, Img.pwrChestSprite);
 
     // since is a spritesheet, actual sprite width = image width / sprites (there are 20 sprites)
-    this.kTotalSpriteCycles = 19;
-    this.width = Img.pwrChestSprite.width / kTotalSpriteCycles;
+    this.width = Img.pwrChestSprite.width / this.totalSpriteCycles;
     this.height = Img.pwrChestSprite.height;
     this.spriteCycle = 0;
 
     this.drawSelf = function() {
         this.updatePos();
-        if (this.spriteCycle >= this.kTotalSpriteCycles) {
-            this.spriteCycle = 0;
-        } else {
-            this.spriteCycle += .3;
-        }
-        var moveModX = Math.floor(this.spriteCycle) * this.width;
+        var cycleMod = this.getCycleMod();
 
-        ctx.drawImage(Img.pwrChestSprite, moveModX, 0, this.width, this.height, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
+        ctx.drawImage(Img.pwrChestSprite, cyleMod, 0, this.width, this.height, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
 
     }
 
@@ -482,11 +486,11 @@ document.onkeydown = function(event) {
         inputId: 'up',
         state: true
     });
-    if(event.keyCode === 82) {// reload r
+    if (event.keyCode === 82) { // reload r
         Player.list[selfId].reload = true;
         socket.emit('reload', true);
     }
-    if (event.keyCode === 81) {// queue q
+    if (event.keyCode === 81) { // queue q
         socket.emit('queue');
     }
     if (event.keyCode === 77) { // m for minimap *DOES NOT WORK YET*
