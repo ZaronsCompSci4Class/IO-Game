@@ -4,18 +4,17 @@ var mouseX;
 var mouseY;
 
 function Entity(initPack, imgParam) {
-    for (var i in initPack) {
-        this[i] = initPack[i];
-    }
 
-    this.image = imgParam;
-    if (this.image.hasOwnProperty("totalSpriteCycles")) {
-        this.width = imgParam.width / this.image.totalSpriteCycles;
-        this.spriteCycle = 0;
-    } else {
-        this.width = imgParam.width;
+    this.setImage = function(imgParam) {
+        this.image = imgParam;
+        if (this.image.hasOwnProperty("totalSpriteCycles")) {
+            this.width = imgParam.width / this.image.totalSpriteCycles;
+            this.spriteCycle = 0;
+        } else {
+            this.width = imgParam.width;
+        }
+        this.height = imgParam.height;
     }
-    this.height = imgParam.height;
 
     this.updatePos = function() {
         this.relativeX = this.x - Player.list[selfId].x + canvasWidth / 2;
@@ -29,13 +28,19 @@ function Entity(initPack, imgParam) {
     }
 
     this.getCycleMod = function() {
-        if (this.spriteCycle >= this.image.totalSpriteCycles) {
+        if (this.spriteCycle >= this.image.totalSpriteCycles - 1) {
             this.spriteCycle = 0;
         } else {
-            this.spriteCycle += .3;
+            this.spriteCycle += this.cycleDuration;
         }
         return Math.floor(this.spriteCycle) * this.width;
     }
+
+    for (var i in initPack) {
+        this[i] = initPack[i];
+    }
+
+    this.setImage(imgParam);
 }
 
 function Player(initPack) {
@@ -149,6 +154,7 @@ Player.list = {};
 function Bullet(initPack) {
     Entity.call(this, initPack, Img.bulletSprite);
 
+    this.cycleDuration = .3;
     //starts shake when bullet spawned
     screenShake.start(this.angle);
 
@@ -156,10 +162,11 @@ function Bullet(initPack) {
         this.updatePos();
         //rotates context to draw bullet correctly
         ctx.translate(this.relativeX, this.relativeY);
-
         ctx.rotate(-this.angle + Math.PI / 2);
-        //draws bullet
-        ctx.drawImage(this.image, -this.width / 2, -this.height / 2);
+
+        var cycleMod = this.getCycleMod();
+        ctx.drawImage(this.image, cycleMod, 0, this.width, this.height, -this.width / 2, -this.height / 2, this.width, this.height);
+
         //restores old canvas state
         ctx.rotate(this.angle - Math.PI / 2);
         ctx.translate(-this.relativeX, -this.relativeY);
@@ -177,7 +184,7 @@ function Objective(initPack) {
         var x = this.x - Player.list[selfId].x + canvasWidth / 2;
         var y = this.y - Player.list[selfId].y + canvasHeight / 2;
 
-        ctx.drawImage(Img.obj, 0, 0, Img.obj.width, Img.obj.height, x - this.width / 2, y - this.height / 2, this.width, this.height);
+        ctx.drawImage(this.image, 0, 0, this.width, this.height, x - this.width / 2, y - this.height / 2, this.width, this.height);
     }
 
     this.getDotColor = function() {
@@ -192,16 +199,12 @@ Objective.list = {};
 function Powerup(initPack) {
     Entity.call(this, initPack, Img.pwrChestSprite);
 
-    // since is a spritesheet, actual sprite width = image width / sprites (there are 20 sprites)
-    this.width = Img.pwrChestSprite.width / this.totalSpriteCycles;
-    this.height = Img.pwrChestSprite.height;
-    this.spriteCycle = 0;
+    this.cycleDuration = .3;
 
     this.drawSelf = function() {
         this.updatePos();
         var cycleMod = this.getCycleMod();
-
-        ctx.drawImage(Img.pwrChestSprite, cyleMod, 0, this.width, this.height, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
+        ctx.drawImage(this.image, cycleMod, 0, this.width, this.height, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
 
     }
 
