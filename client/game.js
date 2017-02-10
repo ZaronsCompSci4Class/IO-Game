@@ -103,11 +103,11 @@ function Player(initPack) {
                 ctxUi.fillRect(canvasWidth * .98, canvasHeight * .025 + (20 - this.bCounter) * canvasHeight / 21, canvasWidth * .015, this.bCounter * canvasHeight / 21);
                 this.partTimer = partTime;
             } else {
-                ctx.fillStyle = 'red';
+                ctxUi.fillStyle = 'red';
                 if (this.bulletFrenzy)
-                    ctx.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - this.partTimer) * .04) * 2);
+                    ctxUi.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - this.partTimer) * .04) * 2);
                 else
-                    ctx.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - this.partTimer) * .04));
+                    ctxUi.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - this.partTimer) * .04));
             }
 
             ////////drawing powerup
