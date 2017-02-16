@@ -45,7 +45,6 @@ function Entity(initPack, imgParam) {
 
 function Player(initPack) {
     Entity.call(this, initPack, Img.playerSprite);
-    this.partTimer = 0;
     ///powerups
     this.activePwrs = [];
     this.numOfPwrs = 0;
@@ -94,21 +93,7 @@ function Player(initPack) {
         var hpWidth = 30 * this.hp / this.hpMax;
         ctx.fillStyle = 'green';
         ctx.fillRect(this.relativeX - hpWidth / 2, this.relativeY - 40, hpWidth, 4);
-        if (this.id == selfId) {
-            ////////////reloading stuff
-            if (this.bCounter == 20)
-                this.reload = false;
-            if (this.bCounter != 0 && !this.reload) {
-                ctxUi.fillStyle = 'green';
-                ctxUi.fillRect(canvasWidth * .98, canvasHeight * .025 + (20 - this.bCounter) * canvasHeight / 21, canvasWidth * .015, this.bCounter * canvasHeight / 21);
-                this.partTimer = partTime;
-            } else {
-                ctxUi.fillStyle = 'red';
-                if (this.bulletFrenzy)
-                    ctxUi.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - this.partTimer) * .04) * 2);
-                else
-                    ctxUi.fillRect(canvasWidth * .98, canvasHeight * .975, canvasWidth * .015, -(canvasHeight / 21) * 4 * ((partTime - this.partTimer) * .04));
-            }
+        if (this.id === selfId && !this.isZombie) {
 
             ////////drawing powerup
             if (this.bulletFrenzy)
@@ -352,6 +337,62 @@ var screenOpposeMouse = {
         ctx.translate(dx, dy);
     },
 };
+
+UI.miniMap.draw = function() {
+    ctxUi.drawImage(Img.miniMap, ctxUi.miniX, ctxUi.miniY, ctxUi.miniSize, ctxUi.miniSize);
+}
+
+UI.drawTime = function() {
+    switch (roundState) {
+        case 'displayingScores':
+            roundInfo = 'Review Scores! ' + (sectionDuration - sectionTime);
+            partTime = 0;
+            break;
+        case 'preparing':
+            roundInfo = 'Round starts in ' + (sectionDuration - sectionTime);
+            break;
+        case 'started':
+            roundInfo = 'Round ends in ' + (sectionDuration - sectionTime);
+            break;
+        default:
+            roundInfo = null;
+            break;
+    }
+
+    if (roundState !== 'displayingScores') {
+        if (ctxDiv.style.display == 'block') {
+            ctxDiv.style.display = 'none';
+        }
+    } else {
+        if (ctxDiv.style.display == 'none') {
+            var scoresAndNames = "Scores: " + '<br>';
+            for (var i in Player.list) {
+                scoresAndNames += Player.list[i].name + ': ' + Player.list[i].score + '<br>';
+                //ctxDiv.innerHTML += '<br>';
+            }
+            ctxDiv.innerHTML = '<span style="font-size:40px; text-align:center;">' + scoresAndNames + '</span>';
+            ctxDiv.style.display = 'block';
+        }
+    }
+    ctxUi.font = '20px Arial';
+    ctxUi.fillStyle = 'green';
+    ctxUi.fillText(roundInfo, 200, 30);
+}
+
+UI.draw = function() {
+    var player = Player.list[selfId];
+    // draw reload bar
+    if (player.reloading) {
+        ctxUi.fillStyle = 'red';
+    } else {
+        ctxUi.fillStyle = 'green';
+    }
+    ctxUi.fillRect(canvasWidth * .98, canvasHeight * .025 + (player.ammo.MAX_BULLETS - player.ammo.bullets) * canvasHeight / 21, canvasWidth * .015, player.ammo.bullets / player.ammo.MAX_BULLETS * canvasHeight * .95);
+
+    UI.miniMap.draw();
+    UI.drawTime();
+}
+
 socket.on('roundInfo', function(data) {
     time = data.timer;
     sectionDuration = data.sectionDuration;
@@ -393,9 +434,8 @@ function draw() {
         }
     }
     drawMap('walls');
-    drawMiniMap();
+    UI.draw();
     drawScore();
-    drawTime();
     for (var i in Player.list) {
         if (Player.list[i].underWallLayer) {
             Player.list[i].drawSelf();
@@ -413,42 +453,6 @@ function draw() {
         Bullet.list[i].draw();
 }
 
-var drawTime = function() {
-    switch (roundState) {
-        case 'displayingScores':
-            roundInfo = 'Review Scores! ' + (sectionDuration - sectionTime);
-            partTime = 0;
-            break;
-        case 'preparing':
-            roundInfo = 'Round starts in ' + (sectionDuration - sectionTime);
-            break;
-        case 'started':
-            roundInfo = 'Round ends in ' + (sectionDuration - sectionTime);
-            break;
-        default:
-            roundInfo = null;
-            break;
-    }
-
-    if (roundState !== 'displayingScores') {
-        if (ctxDiv.style.display == 'block') {
-            ctxDiv.style.display = 'none';
-        }
-    } else {
-        if (ctxDiv.style.display == 'none') {
-            var scoresAndNames = "Scores: " + '<br>';
-            for (var i in Player.list) {
-                scoresAndNames += Player.list[i].name + ': ' + Player.list[i].score + '<br>';
-                //ctxDiv.innerHTML += '<br>';
-            }
-            ctxDiv.innerHTML = '<span style="font-size:40px; text-align:center;">' + scoresAndNames + '</span>';
-            ctxDiv.style.display = 'block';
-        }
-    }
-    ctxUi.font = '20px Arial';
-    ctxUi.fillStyle = 'green';
-    ctxUi.fillText(roundInfo, 200, 30);
-}
 
 var drawMap = function(part) {
     var player = Player.list[selfId];
@@ -456,10 +460,6 @@ var drawMap = function(part) {
     var y = canvasHeight / 2 - player.y;
     var map = Img.map[part];
     ctx.drawImage(map, x, y);
-}
-
-var drawMiniMap = function() {
-    ctxUi.drawImage(Img.miniMap, ctxUi.miniX, ctxUi.miniY, ctxUi.miniSize, ctxUi.miniSize);
 }
 
 var drawScore = function() {
@@ -490,8 +490,9 @@ document.onkeydown = function(event) {
         state: true
     });
     if (event.keyCode === 82) { // reload r
-        Player.list[selfId].reload = true;
-        socket.emit('reload', true);
+        socket.emit('keyPress', {
+            inputId: 'reload',
+        });
     }
     if (event.keyCode === 81) { // queue q
         socket.emit('queue');

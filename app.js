@@ -1,8 +1,10 @@
 "use strict";
 
+
 const express = require(`express`);
 const app = express();
 const serv = require(`http`).Server(app);
+const Events = new require(`events`).EventEmitter();
 
 app.get(`/`, function(req, res) {
     res.sendFile(`${__dirname}/client/index.html`);
@@ -112,9 +114,10 @@ function Player(param) {
     this.pwrId = null;
     this.points = 0;
 
+    const MAX_BULLETS = 20;
     this.ammo = {
-        MAX_BULLETS: 20,
-        bullets: this.MAX_BULLETS,
+        MAX_BULLETS: MAX_BULLETS,
+        bullets: MAX_BULLETS,
         mags: 1,
     };
 
@@ -128,7 +131,7 @@ function Player(param) {
             speedBurst: null,
         },
         timeBetweenBullets: .25,
-        spd: 10,
+        spd: 5,
     };
 
     this.spawn = function() {
@@ -139,27 +142,45 @@ function Player(param) {
     };
 
     this.restartRound = function() {
-        reload(true);
+        this.reload(`reset`);
     };
 
 
-    let lastShotTime = time;
-    let reloadStartedTime;
+    this.lastShotTime = time;
+    this.reloadStartedTime;
 
-    function reload(reset) {
-        if (reset) {
-            this.ammo.bullets = this.ammo.MAX_BULLETS;
-            this.ammo.mags = 1;
+    this.reload = function(state) {
+        // if already full return immediately and stop reloading
+        if (this.ammo.bullets === this.ammo.MAX_BULLETS && this.ammo.mags === 1) {
             this.reloading = false;
-        } else if (this.reloading) {
-            if (time - reloadStartedTime >= this.reloadTimeMax) {
-                this.reload(true);
-                return;
-            }
-            this.ammo.bullets += (this.ammo.MAX_BULLETS / this.reloadTimeMax) / framerate;
-        } else {
-            this.reloading = true;
-            reloadStartedTime = time;
+            return;
+            // if completely empty, start reloading
+        } else if (this.ammo.bullets <= 0 && this.reloading === false) {
+            state = `start`;
+        }
+
+        switch (state) {
+            case `reset`:
+                this.ammo.bullets = this.ammo.MAX_BULLETS;
+                this.ammo.mags = 1;
+                this.reloading = false;
+                break;
+            case `start`:
+                this.reloading = true;
+                this.reloadStartedTime = time;
+                break;
+            case `continue`:
+                if (this.reloading) {
+                    if (this.ammo.bullets >= this.ammo.MAX_BULLETS && this.ammo.mags >= 1) {
+                        this.reload(`reset`);
+                        return;
+                    }
+                    this.ammo.bullets += (this.ammo.MAX_BULLETS / this.reloadTimeMax) / framerate;
+                }
+                break;
+            default:
+                throw new Error("Player.reload called with wrong parameter");
+                break;
         }
     }
 
@@ -168,30 +189,18 @@ function Player(param) {
     this.update = function() {
         this.updateSpd();
         this.updatePosition();
-        if (roundStarted !== this.roundState) {
-            this.roundState = roundStarted;
-            reload(true);
-        }
 
         if (!this.isZombie) {
 
             // if has a magazine and ammo inside, and more than timeBetweenBullets time has passed after the last shot, shoot a new Bullet
-            if (this.pressingAttack && time - lastShotTime >= this.mod.timeBetweenBullets && this.ammo.mags > 0 && !this.reloading) {
-                lastShotTime = time;
+            if (this.pressingAttack && time - this.lastShotTime >= this.mod.timeBetweenBullets && this.ammo.mags > 0 && !this.reloading) {
+                this.lastShotTime = time;
                 this.shootBullet();
                 if (roundStarted) {
                     this.ammo.bullets -= 1;
-                    if (this.ammo.bullets === 0) {
-                        this.ammo.mags -= 1;
-                        reload();
-                    }
-                } else {
-                    reload(true);
                 }
             }
-            if (this.reloading) {
-                reload();
-            }
+            this.reload(`continue`);
         }
         return this.getUpdatePack();
     };
@@ -271,8 +280,9 @@ function Player(param) {
             isZombie: this.isZombie,
             skins: this.skins,
             underWallLayer: this.isAboveWall(),
-            bCounter: this.ammo.bullets,
+            ammo: this.ammo,
             activeMods: this.activeMods,
+            reloading: this.reloading,
         };
     };
     Player.list[this.id] = this;
@@ -285,8 +295,10 @@ Player.onConnect = function(socket, name) {
         id: socket.id,
         name,
     });
-    socket.on(`keyPress`, function(data) {
-        if (data.inputId === `left`)
+    socket.on(`keyPress`, (data) => {
+        if (data.inputId === `reload`) {
+            player.reload(`start`);
+        } else if (data.inputId === `left`)
             player.pressingLeft = data.state;
         else if (data.inputId === `right`)
             player.pressingRight = data.state;
@@ -298,10 +310,6 @@ Player.onConnect = function(socket, name) {
             player.pressingAttack = data.state;
         else if (data.inputId === `mouseAngle`)
             player.mouseAngle = data.state;
-    });
-
-    socket.on('reload', function(data) {
-        player.reload = data;
     });
 
     socket.on('queue', function() {

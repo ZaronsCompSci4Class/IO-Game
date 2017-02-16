@@ -76,6 +76,9 @@ var chatForm = document.getElementById('chat-form');
 socket.on('addToChat', function(data) {
     chatText.innerHTML += '<div>' + data.playerName + ': ' + data.message + '</div>';
 });
+chatText.scrollTop = chatText.scrollHeight;
+chatInput.blur();
+
 socket.on('evalAnswer', function(data) {
     console.log(data);
 });
@@ -114,3 +117,8 @@ Img.map.floor.src = '/client/img/floor.png';
 Img.map.walls = new Image();
 Img.map.walls.src = '/client/img/walls.png';
 var mapSize = Img.map.floor.width;
+
+
+var UI = {
+    miniMap: {},
+};
