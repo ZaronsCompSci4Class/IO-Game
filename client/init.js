@@ -96,11 +96,11 @@ chatForm.onsubmit = function(e) {
 //game
 var Img = {};
 Img.playerSprite = new Image();
-Img.playerSprite.src = '/client/img/humanSprite.png';
+Img.playerSprite.src = '/client/img/human_sheet.png';
 Img.playerSprite2 = new Image();
-Img.playerSprite2.src = '/client/img/zombieSprite.png';
+Img.playerSprite2.src = '/client/img/reptilian_sheet.png';
 Img.harambeSprite = new Image();
-Img.harambeSprite.src = '/client/img/harambeSprite.png';
+Img.harambeSprite.src = '/client/img/harambe_sheet.png';
 Img.bulletSprite = new Image();
 Img.bulletSprite.src = '/client/img/bullet_sheet.png';
 Img.bulletSprite.totalSpriteCycles = 6;

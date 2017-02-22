@@ -15,7 +15,7 @@ public class ImageToArray
     public static void main (String[] args) {
         BufferedImage img = null;
         try {
-            img = ImageIO.read(new File("../rawMap.png"));
+            img = ImageIO.read(new File("../collision_map.png"));
             int height = img.getHeight();
             int width = img.getWidth();
             int stringIndex = 0;
