@@ -22,22 +22,36 @@ public class ImageToArray
             StringBuilder strB = new StringBuilder();
             String pixels = "";
             Color pixColor;
+            int color;
+            final int BLACK = -16777216;
+            final int GREY = -5395027;
+            final int WHITE = -1;
+            final int BLUE = -16772225;
             for(int i = 0; i < height; i++){
                 stringIndex = width * i;
                 for(int j = 0; j < width; j++){
                     pixColor = new Color(img.getRGB(j,i));
-                    if(pixColor.getRGB() == -16777216){
+                    color = pixColor.getRGB();
+                    if(color == BLACK){
                         //sets black areas to uncollidable
                         strB.append(1);
-                        img.setRGB(j,i,-16777216);
-                    }else if(pixColor.getRGB() == -5395027){
+                        img.setRGB(j, i, BLACK);
+                    }else if(color == GREY){
                         //sets grey areas to special overlapping
                         strB.append(2);
-                        img.setRGB(j,i,-5395027);
-                    }else{
+                        img.setRGB(j, i,GREY);
+                    }else if(color == WHITE){
                         //sets white areas to nothing
                         strB.append(0);
-                        img.setRGB(j,i,-1);
+                        img.setRGB(j, i, WHITE);
+                    }else if(color == BLUE){
+                        //sets blue areas to water
+                        strB.append(3);
+                        img.setRGB(j, i, BLUE);
+                    }else{
+                        System.out.println(color);
+                        strB.append(0);
+                        img.setRGB(j, i, WHITE);
                     }
                 }
             }

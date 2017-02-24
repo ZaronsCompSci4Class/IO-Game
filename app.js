@@ -38,8 +38,12 @@ function Entity(param) {
         this.x += this.spdX;
         this.y += this.spdY;
     };
-    this.getDistance = function(pt) {
-        return Math.sqrt(Math.pow(this.x - pt.x, 2) + Math.pow(this.y - pt.y, 2));
+    this.getDistance = function(entity) {
+        try{
+        return Math.sqrt(Math.pow(this.x - entity.x, 2) + Math.pow(this.y - entity.y, 2));
+        }catch(){
+            throw new Error(entity);
+        }
     };
 
     // method that checks for all collisions, returns boolean
@@ -50,11 +54,11 @@ function Entity(param) {
         }
         // checks within map array at each of the four corners
         // checks right side
-        if (this.getCollisionWithMap(x - PimgW, y + PimgH) || this.getCollisionWithMap(x - PimgW, y + PimgH * 2)) {
+        if (this.getCollisionWithMap(x - PimgW, y + PimgH, `1`) || this.getCollisionWithMap(x - PimgW, y + PimgH * 2, `1`)) {
             return true;
-        } else if (this.getCollisionWithMap(x + PimgW, y + PimgH) || this.getCollisionWithMap(x + PimgW, y + PimgH * 2)) {
+        } else if (this.getCollisionWithMap(x + PimgW, y + PimgH, `1`) || this.getCollisionWithMap(x + PimgW, y + PimgH * 2, `1`)) {
             return true;
-        } else if (this.getCollisionWithMap(x, y + PimgH) || this.getCollisionWithMap(x, y + PimgH * 2)) {
+        } else if (this.getCollisionWithMap(x, y + PimgH, `1`) || this.getCollisionWithMap(x, y + PimgH * 2, `1`)) {
             return true;
         }
 
@@ -72,23 +76,33 @@ function Entity(param) {
         return false;
     };
 
-    this.getCollisionWithMap = function(x, y) {
+    this.getCollisionWithMap = function(x, y, str) {
         // gets collision index with map collisionText
         let xCU = Math.floor(x / pixelsPerCU);
         let yCU = Math.floor(y / pixelsPerCU);
         let index = yCU * 128 + xCU;
-        if (collisionText.charAt(index) === `1`)
+        if (collisionText.charAt(index) === str)
             return true;
-        else
+        else {
             return false;
+        }
     };
 
     this.isAboveWall = function() {
         if (this.getCollisionWithMap(this.x - PimgW, this.y - PimgH - 5, `2`) || this.getCollisionWithMap(this.x + PimgW, this.y - PimgH - 5, `2`) || this.getCollisionWithMap(this.x - PimgW, this.y, `2`) || this.getCollisionWithMap(this.x + PimgW, this.y, `2`) || this.getCollisionWithMap(this.x, this.y - PimgH - 5, `2`)) {
             return true;
+        } else {
+            return false;
         }
-        return false;
     };
+
+    this.isInWater = function() {
+        if (this.getCollisionWithMap(this.x - PimgW, this.y - PimgH - 5, `3`) || this.getCollisionWithMap(this.x + PimgW, this.y - PimgH - 5, `3`) || this.getCollisionWithMap(this.x - PimgW, this.y, `3`) || this.getCollisionWithMap(this.x + PimgW, this.y, `3`) || this.getCollisionWithMap(this.x, this.y - PimgH - 5, `3`)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     return this;
 }
 
@@ -179,7 +193,7 @@ function Player(param) {
                 }
                 break;
             default:
-                throw new Error("Player.reload called with wrong parameter");
+                throw new Error(`Player.reload called with wrong parameter`);
                 break;
         }
     }
@@ -595,7 +609,7 @@ function Powerup(param) {
         // if has been active on player for more than duration, will remove effects, then delete this from their pwrs
         if (time - this.timer >= this.duration && this.uses === 0) {
             this.remove();
-            console.log("time is up");
+            console.log(`time is up`);
         }
     };
 
@@ -604,14 +618,14 @@ function Powerup(param) {
         this.parent.score += 2;
         this.pickedUp = true;
         this.parent.pwrId = this.id;
-        console.log("value: " + this.parent.pwrId);
+        console.log(`value: ` + this.parent.pwrId);
         console.log(this.type);
         //marks itthis for removal from Powerup.list
         this.toRemove = true;
     };
 
     this.applyPwr = function() {
-        console.log("q works");
+        console.log(`q works`);
         this.parent.activeMods[this.pwrId] = (this.type);
         this.parent.mod.pwrs[this.type] = this;
         this.timer = time;
@@ -628,7 +642,7 @@ function Powerup(param) {
     this.remove = function() {
         if (this.pickedUp) {
             this.parent.pwrId = null;
-            console.log("pene");
+            console.log(`pene`);
             //loops to find the pwr than removes it out
             delete this.parent.activeMods[this.id];
             // undoes modifications on player based on type of powerup
