@@ -9,12 +9,6 @@ body,
     background-color: black;
 }
 
-#bg {
-    padding: 0px;
-    max-width: 100%;
-    max-height: 100%;
-}
-
 #signDivChild {
     background: #119305;
     border-radius: 15px;
