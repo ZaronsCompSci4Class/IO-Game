@@ -429,7 +429,7 @@ function draw() {
     ctxUi.clearRect(0, 0, canvasWidth, canvasHeight);
     drawMap('floor');
     for (var i in Player.list) {
-        if (!Player.list[i].underWallLayer) {
+        if (Player.list[i].underWallLayer) {
             Player.list[i].drawSelf();
         }
     }
@@ -437,7 +437,7 @@ function draw() {
     UI.draw();
     drawScore();
     for (var i in Player.list) {
-        if (Player.list[i].underWallLayer) {
+        if (!Player.list[i].underWallLayer) {
             Player.list[i].drawSelf();
         }
     }
