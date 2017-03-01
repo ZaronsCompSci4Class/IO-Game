@@ -274,8 +274,10 @@ Player.prototype.updateSpd = function() {
     // counters movement and sets animCounter = to it
     if (this.spdY !== 0 || this.spdX !== 0) {
         this.animCounter += 0.2;
+    }else{
+        this.animCounter = 0; // returns to starting position when not moving
     }
-    if (this.animCounter > 3) {
+    if (this.animCounter > 4) {
         this.animCounter = 0;
     }
 };
