@@ -70,7 +70,7 @@ canvas#ctx-ui {
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 0;
+    z-index: 1;
 }
 
 canvas {
@@ -115,6 +115,7 @@ canvas {
     top: 75%;
     height: 25%;
     width: 20%;
+    z-index: 2;
 }
 
 #chat-text {
@@ -125,4 +126,9 @@ canvas {
 #chat-input {
     height: 100%;
     width: 100%;
+}
+
+span {
+    position: absolute;
+    z-index: 1;
 }
