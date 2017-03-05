@@ -54,9 +54,10 @@ function Player(initPack) {
 
     this.createNameTag = function(){
         this.nameTag = document.createElement("span");
+        this.nameTag.className = "nameTag";
         var nameText = document.createTextNode(this.name);
         this.nameTag.appendChild(nameText);
-        document.insertBefore(this.nameTag, canvas);
+        document.body.appendChild(this.nameTag);
     };
 
     this.drawSelf = function() {
@@ -102,7 +103,8 @@ function Player(initPack) {
         ctx.fillRect(this.relativeX - hpWidth / 2, this.relativeY - 40, hpWidth, 4);
 
         // reposition nameTag
-        this.nameTag.style.top = this.relativeX;
+        this.nameTag.style.top = (this.relativeY - screenOpposeMouse.lastTotalDisplacementY) / screenScaleFactor + "px";
+        this.nameTag.style.left = (this.relativeX - screenOpposeMouse.lastTotalDisplacementX) / screenScaleFactor + "px";
 
         if (this.id === selfId && !this.isZombie) {
 
