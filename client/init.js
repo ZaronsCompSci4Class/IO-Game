@@ -1,7 +1,9 @@
 var socket = io();
 
 var canvasWidth = 568;
-var canvasHeight = 432;
+// set canvas height to preserve screen aspect ratio
+var canvasHeight = canvasWidth * (window.innerHeight / window.innerWidth);
+var screenScaleFactor = canvasWidth / window.innerWidth;
 
 var canvas = document.getElementById("ctx");
 var ctx = canvas.getContext("2d");
@@ -64,8 +66,9 @@ socket.on('signInResponse', function(data) {
     if (data.success) {
         signDiv.style.display = 'none';
         gameDiv.style.display = 'inline-block';
-    } else
+    } else{
         alert("Sign in unsuccessul.");
+    }
 });
 
 //chat

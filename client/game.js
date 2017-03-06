@@ -52,6 +52,14 @@ function Player(initPack) {
     this.width = (Img.playerSprite.width / 4);
     this.height = (Img.playerSprite.height / 4);
 
+    this.createNameTag = function(){
+        this.nameTag = document.createElement("span");
+        this.nameTag.className = "nameTag";
+        var nameText = document.createTextNode(this.name);
+        this.nameTag.appendChild(nameText);
+        document.body.appendChild(this.nameTag);
+    };
+
     this.drawSelf = function() {
         //sets directionMod depending on angle
         var directionMod = 0; //down
@@ -89,10 +97,15 @@ function Player(initPack) {
     }
 
     this.drawAttributes = function() {
-        //draw health bar
+        // draw health bar
         var hpWidth = 30 * this.hp / this.hpMax;
         ctx.fillStyle = 'green';
         ctx.fillRect(this.relativeX - hpWidth / 2, this.relativeY - 40, hpWidth, 4);
+
+        // reposition nameTag
+        this.nameTag.style.top = (this.relativeY - screenOpposeMouse.lastTotalDisplacementY) / screenScaleFactor + "px";
+        this.nameTag.style.left = (this.relativeX - screenOpposeMouse.lastTotalDisplacementX) / screenScaleFactor + "px";
+
         if (this.id === selfId && !this.isZombie) {
 
             ////////drawing powerup
@@ -131,6 +144,7 @@ function Player(initPack) {
 
     Player.list[this.id] = this;
 
+    this.createNameTag();
 
     return this;
 }
@@ -140,8 +154,11 @@ function Bullet(initPack) {
     Entity.call(this, initPack, Img.bulletSprite);
 
     this.cycleDuration = .3;
-    //starts shake when bullet spawned
-    screenShake.start(this.angle);
+
+    if (this.id === selfId) {
+        //starts shake when bullet spawned if self shot it
+        screenShake.start(this.angle);
+    }
 
     this.draw = function() {
         this.updatePos();
@@ -207,8 +224,9 @@ Powerup.list = {};
 var selfId = null;
 
 socket.on('init', function(data) {
-    if (data.selfId)
+    if (data.selfId) {
         selfId = data.selfId;
+    }
     if (data.player) {
         for (var i = 0; i < data.player.length; i++) {
             new Player(data.player[i]);
@@ -401,17 +419,37 @@ socket.on('roundInfo', function(data) {
     sectionTime = data.sectionTime;
 });
 
-setInterval(function() {
-    if (!selfId)
-        return;
-    update();
-    draw();
-    partTime++;
-}, 40);
+var drawingObjects = [];
+
+function drawingObjectsCompare(a, b) {
+    // draw functions in order of y then x
+    if (a.y === b.y) {
+        return b.x - a.x;
+    } else {
+        return b.y - a.y;
+    }
+}
+
+function drawingObjectsFilter(entity) {
+    var distanceX = Math.abs(Player.list[selfId].x - entity.x);
+    var distanceY = Math.abs(Player.list[selfId].y - entity.y);
+    if (distanceX > canvasWidth || distanceY > canvasHeight) {
+        return false;
+    } else {
+        return true;
+    }
+}
 
 function update() {
-    for (var i in Player.list)
+    for (var i in Player.list) {
         Player.list[i].updatePos();
+    }
+    var entityArr = [];
+    for (var i in Player.list) {
+        entityArr.push(Player.list[i]);
+    }
+    drawingObjects = entityArr.filter(drawingObjectsFilter);
+    drawingObjects.sort(drawingObjectsCompare);
 }
 
 function draw() {
@@ -428,22 +466,33 @@ function draw() {
 
     ctxUi.clearRect(0, 0, canvasWidth, canvasHeight);
     drawMap('floor');
-    for (var i in Player.list) {
-        if (Player.list[i].underWallLayer) {
-            Player.list[i].drawSelf();
+    for (var i = 0; i < drawingObjects.length; i++) {
+        var entity = drawingObjects[i];
+        if (entity instanceof Player) {
+            if (entity.underWallLayer) {
+                entity.drawSelf();
+            }
         }
     }
     drawMap('walls');
     UI.draw();
     drawScore();
-    for (var i in Player.list) {
-        if (!Player.list[i].underWallLayer) {
-            Player.list[i].drawSelf();
+    for (var i = 0; i < drawingObjects.length; i++) {
+        var entity = drawingObjects[i];
+        if (entity instanceof Player) {
+            if (!entity.underWallLayer) {
+                entity.drawSelf();
+            }
         }
     }
-    for (var i in Player.list) {
+    for (var i = 0; i < drawingObjects.length; i++) {
+        var entity = drawingObjects[i];
+        if (entity instanceof Player) {
+            entity.drawAttributes();
+        }
+    }
+    for(var i in Player.list){
         Player.list[i].drawDot();
-        Player.list[i].drawAttributes();
     }
     for (var i in Objective.list)
         Objective.list[i].drawSelf();
@@ -551,10 +600,23 @@ document.onmousemove = function(event) {
     mouseX = event.clientX - window.innerWidth / 2;
     mouseY = event.clientY - window.innerHeight / 2;
     selfMouseAngle = -Math.atan2(mouseY, mouseX);
-    if (selfMouseAngle < 0)
+    if (selfMouseAngle < 0) {
         selfMouseAngle = 2 * Math.PI + selfMouseAngle;
+    }
     socket.emit('keyPress', {
         inputId: 'mouseAngle',
         state: selfMouseAngle
     });
 }
+
+function gameFunc() {
+    // if connection made, run game loop, otherwise, do introAnimation
+    if (selfId) {
+        update();
+        draw();
+        partTime++;
+    } else {
+        introAnimation();
+    }
+}
+var intervalId = setInterval(gameFunc, 40);
