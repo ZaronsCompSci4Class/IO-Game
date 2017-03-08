@@ -398,6 +398,7 @@ function Bullet(param) {
     this.oneHitKill = param.oneHitKill;
     this.timer = 0;
     this.toRemove = false;
+    console.log("Bullet Param Parent = " + this.parent);
 
     Bullet.list[this.id] = this;
 }
@@ -459,11 +460,13 @@ Bullet.prototype.checkForCollision = function(x, y) {
 };
 
 Bullet.prototype.getInitPack = function() {
+    console.log(this.parent);
     return {
         id: this.id,
         x: this.x,
         y: this.y,
         angle: this.angle,
+        parent: this.parent,
     };
 };
 
