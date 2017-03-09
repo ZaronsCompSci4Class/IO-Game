@@ -164,7 +164,8 @@ function Bullet(initPack) {
         console.log("parent = selfId");
         //starts shake when bullet spawned if self shot it
         screenShake.start(this.angle);
-        shooting = true;
+        
+        
     }
 
     this.draw = function() {
@@ -312,7 +313,7 @@ var roundState;
 var sectionDuration = 0;
 var sectionTime = 0;
 var roundStarted = false;
-var shooting = false;
+
 var screenShake = {
 
     active: false,
@@ -343,7 +344,7 @@ var screenShake = {
             else {
                 this.reset();
                 this.active = false;
-                shooting = false;
+                
             }
 
         }
