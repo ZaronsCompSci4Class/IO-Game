@@ -2,7 +2,7 @@ var socket = io();
 
 var canvasWidth = 568;
 // set canvas height to preserve screen aspect ratio
-var canvasHeight = canvasWidth * (window.innerHeight / window.innerWidth);
+var canvasHeight = Math.round(canvasWidth * (window.innerHeight / window.innerWidth));
 var screenScaleFactor = canvasWidth / window.innerWidth;
 
 var canvas = document.getElementById("ctx");
@@ -17,6 +17,11 @@ var ctxUi = canvasUi.getContext("2d");
 ctxUi.canvas.width = canvasWidth;
 ctxUi.canvas.height = canvasHeight;
 ctxUi.imageSmoothingEnabled = false;
+
+var ctxSmooth = document.getElementById("autorendered-canvas").getContext("2d");
+ctxSmooth.canvas.width = window.innerWidth;
+ctxSmooth.canvas.height = window.innerHeight;
+ctxSmooth.scale(1 / screenScaleFactor, 1 / screenScaleFactor);
 
 // for the mini map
 ctxUi.miniX = canvasWidth * .85;
@@ -66,7 +71,7 @@ socket.on('signInResponse', function(data) {
     if (data.success) {
         signDiv.style.display = 'none';
         gameDiv.style.display = 'inline-block';
-    } else{
+    } else {
         alert("Sign in unsuccessul.");
     }
 });

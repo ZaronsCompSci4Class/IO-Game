@@ -25,8 +25,9 @@
 
 
     <div id="gameDiv">
-        <canvas id="ctx"></canvas>
-        <canvas id="ctx-ui"></canvas>
+        <canvas id="ctx" class="pixelated centered"></canvas>
+        <canvas id="ctx-ui" class="pixelated"></canvas>
+        <canvas id="autorendered-canvas" class="centered"></canvas>
         <div id="ctx-div" style="display: none"></div>
         <div id="shop-div">
             <button id="shop-button">Point Shop</button>
@@ -47,7 +48,6 @@
                 <input id="chat-input" type="text"></input>
             </form>
         </div>
-    </div>
     </div>
     <script src="/client/init.js"></script>
     <script src="/client/intro_screen.js"></script>

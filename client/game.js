@@ -52,14 +52,6 @@ function Player(initPack) {
     this.width = (Img.playerSprite.width / 4);
     this.height = (Img.playerSprite.height / 4);
 
-    this.createNameTag = function(){
-        this.nameTag = document.createElement("span");
-        this.nameTag.className = "nameTag";
-        var nameText = document.createTextNode(this.name);
-        this.nameTag.appendChild(nameText);
-        document.body.appendChild(this.nameTag);
-    };
-
     this.drawSelf = function() {
         //sets directionMod depending on angle
         var directionMod = 0; //down
@@ -96,15 +88,20 @@ function Player(initPack) {
         return dotColor;
     }
 
+    this.drawName = function() {
+        ctxSmooth.fillText(this.name, this.relativeX, this.relativeY);
+        ctxSmooth.fillStyle = "green";
+        console.log(ctxSmooth.canvas.width);
+        ctxSmooth.fillRect(0,0,100,200);
+    }
+
     this.drawAttributes = function() {
         // draw health bar
         var hpWidth = 30 * this.hp / this.hpMax;
         ctx.fillStyle = 'green';
         ctx.fillRect(this.relativeX - hpWidth / 2, this.relativeY - 40, hpWidth, 4);
 
-        // reposition nameTag
-        this.nameTag.style.top = (this.relativeY - screenOpposeMouse.lastTotalDisplacementY) / screenScaleFactor + "px";
-        this.nameTag.style.left = (this.relativeX - screenOpposeMouse.lastTotalDisplacementX) / screenScaleFactor + "px";
+        this.drawName();
 
         if (this.id === selfId && !this.isZombie) {
 
@@ -143,8 +140,6 @@ function Player(initPack) {
     }
 
     Player.list[this.id] = this;
-
-    this.createNameTag();
 
     return this;
 }
@@ -324,7 +319,7 @@ var screenShake = {
         if (this.time <= this.duration) {
             this.dx = this.speed * Math.sign(this.time) * Math.cos(this.angle);
             this.dy = this.speed * -Math.sign(this.time) * Math.sin(this.angle);
-            ctx.translate(this.dx, this.dy);
+            translateAll(this.dx, this.dy);
             this.dFromOriginX += this.dx;
             this.dFromOriginY += this.dy;
             this.time++;
@@ -335,7 +330,7 @@ var screenShake = {
     },
     reset: function() {
         if (this.dFromOriginX !== 0 || this.dFromOriginY !== 0) {
-            ctx.translate(-this.dFromOriginX, -this.dFromOriginY); //eliminates discrepancy
+            translateAll(-this.dFromOriginX, -this.dFromOriginY); //eliminates discrepancy
             this.dFromOriginX = 0, this.dFromOriginY = 0;
         }
     }
@@ -352,9 +347,13 @@ var screenOpposeMouse = {
         var dy = this.lastTotalDisplacementY - newTotalDisplacementY;
         this.lastTotalDisplacementX = newTotalDisplacementX;
         this.lastTotalDisplacementY = newTotalDisplacementY;
-        ctx.translate(dx, dy);
+        translateAll(dx, dy);
     },
 };
+
+function translateAll(dx, dy){
+    ctx.translate(dx, dy);
+}
 
 UI.miniMap.draw = function() {
     ctxUi.drawImage(Img.miniMap, ctxUi.miniX, ctxUi.miniY, ctxUi.miniSize, ctxUi.miniSize);
@@ -453,9 +452,6 @@ function update() {
 }
 
 function draw() {
-    screenOpposeMouse.draw();
-    screenShake.draw();
-
     // Store the current transformation matrix
     ctx.save();
     // Use the identity matrix while clearing the canvas
@@ -498,8 +494,11 @@ function draw() {
         Objective.list[i].drawSelf();
     for (var i in Powerup.list)
         Powerup.list[i].drawSelf();
-    for (var i in Bullet.list)
+    for (var i in Bullet.list){
         Bullet.list[i].draw();
+    }
+    screenOpposeMouse.draw();
+    screenShake.draw();
 }
 
 
