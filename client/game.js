@@ -150,9 +150,9 @@ function Bullet(initPack) {
     this.cycleDuration = .3;
     console.log("Bullet was called" + this.parent + "," + selfId);
     if (this.parent === selfId) {
-        console.log("parent = selfId");
-        //starts shake when bullet spawned if self shot it
+        // starts shake when bullet spawned if self shot it
         screenShake.start(this.angle);
+        bulletSound.play();
     }
 
     this.draw = function() {
