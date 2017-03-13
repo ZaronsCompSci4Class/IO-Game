@@ -10,7 +10,8 @@ function Entity(initPack, imgParam) {
         if (this.image.hasOwnProperty("totalSpriteCycles")) {
             this.width = imgParam.width / this.image.totalSpriteCycles;
             this.spriteCycle = 0;
-        } else {
+        }
+        else {
             this.width = imgParam.width;
         }
         this.height = imgParam.height;
@@ -30,7 +31,8 @@ function Entity(initPack, imgParam) {
     this.getCycleMod = function() {
         if (this.spriteCycle >= this.image.totalSpriteCycles - 1) {
             this.spriteCycle = 0;
-        } else {
+        }
+        else {
             this.spriteCycle += this.cycleDuration;
         }
         return Math.floor(this.spriteCycle) * this.width;
@@ -52,6 +54,17 @@ function Player(initPack) {
     this.width = (Img.playerSprite.width / 4);
     this.height = (Img.playerSprite.height / 4);
 
+<<<<<<< HEAD
+=======
+    this.createNameTag = function() {
+        this.nameTag = document.createElement("span");
+        this.nameTag.className = "nameTag";
+        var nameText = document.createTextNode(this.name);
+        this.nameTag.appendChild(nameText);
+        document.body.appendChild(this.nameTag);
+    };
+
+>>>>>>> unstable
     this.drawSelf = function() {
         //sets directionMod depending on angle
         var directionMod = 0; //down
@@ -80,9 +93,11 @@ function Player(initPack) {
     this.getDotColor = function() {
         if (this.id == selfId) {
             var dotColor = "yellow";
-        } else if (this.isZombie) {
+        }
+        else if (this.isZombie) {
             var dotColor = "red";
-        } else {
+        }
+        else {
             var dotColor = "green";
         }
         return dotColor;
@@ -91,6 +106,8 @@ function Player(initPack) {
     this.drawName = function() {
         ctxSmooth.fillText(this.name, this.relativeX, this.relativeY);
         ctxSmooth.fillStyle = "green";
+        console.log(ctxSmooth.canvas.width);
+        ctxSmooth.fillRect(0,0,100,200);
     }
 
     this.drawAttributes = function() {
@@ -144,15 +161,17 @@ function Player(initPack) {
 Player.list = {};
 
 function Bullet(initPack) {
-
+    
     Entity.call(this, initPack, Img.bulletSprite);
 
     this.cycleDuration = .3;
-    console.log("Bullet was called" + this.parent + "," + selfId);
+    console.log("Bullet was called"+this.parent+","+selfId);
     if (this.parent === selfId) {
         console.log("parent = selfId");
         //starts shake when bullet spawned if self shot it
         screenShake.start(this.angle);
+        
+        
     }
 
     this.draw = function() {
@@ -300,7 +319,9 @@ var roundState;
 var sectionDuration = 0;
 var sectionTime = 0;
 var roundStarted = false;
+
 var screenShake = {
+
     active: false,
     dx: 0,
     dy: 0,
@@ -310,13 +331,25 @@ var screenShake = {
     dFromOriginX: 0,
     dFromOriginY: 0, //keeps track of distance from origin
     start: function(theta) {
-        console.log('start was actived' + theta);
+        console.log('start was actived'+theta);
         this.active = true;
         this.angle = theta;
         this.time = -this.duration;
         this.reset();
     },
     draw: function() {
+<<<<<<< HEAD
+        if (this.time <= this.duration) {
+            this.dx = this.speed * Math.sign(this.time) * Math.cos(this.angle);
+            this.dy = this.speed * -Math.sign(this.time) * Math.sin(this.angle);
+            translateAll(this.dx, this.dy);
+            this.dFromOriginX += this.dx;
+            this.dFromOriginY += this.dy;
+            this.time++;
+        } else {
+            this.reset();
+            this.active = false;
+=======
         if (screenShake.active) {
             if (this.time <= this.duration) {
                 this.dx = this.speed * Math.sign(this.time) * Math.cos(this.angle);
@@ -325,12 +358,14 @@ var screenShake = {
                 this.dFromOriginX += this.dx;
                 this.dFromOriginY += this.dy;
                 this.time++;
-            } else {
+            }
+            else {
                 this.reset();
                 this.active = false;
-
+                
             }
 
+>>>>>>> unstable
         }
     },
     reset: function() {
@@ -356,7 +391,7 @@ var screenOpposeMouse = {
     },
 };
 
-function translateAll(dx, dy) {
+function translateAll(dx, dy){
     ctx.translate(dx, dy);
 }
 
@@ -385,7 +420,8 @@ UI.drawTime = function() {
         if (ctxDiv.style.display == 'block') {
             ctxDiv.style.display = 'none';
         }
-    } else {
+    }
+    else {
         if (ctxDiv.style.display == 'none') {
             var scoresAndNames = "Scores: " + '<br>';
             for (var i in Player.list) {
@@ -406,7 +442,8 @@ UI.draw = function() {
     // draw reload bar
     if (player.reloading) {
         ctxUi.fillStyle = 'red';
-    } else {
+    }
+    else {
         ctxUi.fillStyle = 'green';
     }
     ctxUi.fillRect(canvasWidth * .98, canvasHeight * .025 + (player.ammo.MAX_BULLETS - player.ammo.bullets) * canvasHeight / 21, canvasWidth * .015, player.ammo.bullets / player.ammo.MAX_BULLETS * canvasHeight * .95);
@@ -429,7 +466,8 @@ function drawingObjectsCompare(a, b) {
     // draw functions in order of y then x
     if (a.y === b.y) {
         return b.x - a.x;
-    } else {
+    }
+    else {
         return b.y - a.y;
     }
 }
@@ -439,7 +477,8 @@ function drawingObjectsFilter(entity) {
     var distanceY = Math.abs(Player.list[selfId].y - entity.y);
     if (distanceX > canvasWidth || distanceY > canvasHeight) {
         return false;
-    } else {
+    }
+    else {
         return true;
     }
 }
@@ -457,9 +496,14 @@ function update() {
 }
 
 function draw() {
-    screenOpposeMouse.draw();
-    screenShake.draw();
+<<<<<<< HEAD
+=======
 
+    screenShake.draw();
+    screenOpposeMouse.draw();
+
+
+>>>>>>> unstable
     // Store the current transformation matrix
     ctx.save();
     // Use the identity matrix while clearing the canvas
@@ -502,11 +546,13 @@ function draw() {
         Objective.list[i].drawSelf();
     for (var i in Powerup.list)
         Powerup.list[i].drawSelf();
-    for (var i in Bullet.list) {
+    for (var i in Bullet.list){
         Bullet.list[i].draw();
     }
-
+    screenOpposeMouse.draw();
+    screenShake.draw();
 }
+
 
 var drawMap = function(part) {
     var player = Player.list[selfId];
@@ -554,7 +600,8 @@ document.onkeydown = function(event) {
     if (event.keyCode === 77) { // m for minimap *DOES NOT WORK YET*
         if (miniMapHolder.style.display != 'none') {
             miniMapHolder.style.display = 'none';
-        } else {
+        }
+        else {
             miniMapHolder.style.display = 'block';
         }
     }
@@ -583,7 +630,8 @@ document.onkeyup = function(event) {
     else if (event.keyCode === 77) { // m
         if (miniMapHolder.style.display != 'none') {
             miniMapHolder.style.display = 'none';
-        } else {
+        }
+        else {
             miniMapHolder.style.display = 'block';
         }
     }
@@ -620,7 +668,8 @@ function gameFunc() {
         update();
         draw();
         partTime++;
-    } else {
+    }
+    else {
         introAnimation();
     }
 }
