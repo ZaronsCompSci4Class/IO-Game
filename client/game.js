@@ -146,11 +146,13 @@ function Player(initPack) {
 Player.list = {};
 
 function Bullet(initPack) {
+    
     Entity.call(this, initPack, Img.bulletSprite);
 
     this.cycleDuration = .3;
-
-    if (this.id === selfId) {
+    console.log("Bullet was called"+this.parent+","+selfId);
+    if (this.parent === selfId) {
+        console.log("parent = selfId");
         //starts shake when bullet spawned if self shot it
         screenShake.start(this.angle);
     }
@@ -305,27 +307,33 @@ var screenShake = {
     dx: 0,
     dy: 0,
     speed: 2, //constant speed of shake
-    duration: .1 * framerate, //coefficient = number of seconds
+    duration: .07 * framerate, //coefficient = number of seconds
     time: this.duration,
     dFromOriginX: 0,
     dFromOriginY: 0, //keeps track of distance from origin
     start: function(theta) {
+        console.log('start was actived'+theta);
         this.active = true;
         this.angle = theta;
         this.time = -this.duration;
         this.reset();
     },
     draw: function() {
-        if (this.time <= this.duration) {
-            this.dx = this.speed * Math.sign(this.time) * Math.cos(this.angle);
-            this.dy = this.speed * -Math.sign(this.time) * Math.sin(this.angle);
-            translateAll(this.dx, this.dy);
-            this.dFromOriginX += this.dx;
-            this.dFromOriginY += this.dy;
-            this.time++;
-        } else {
-            this.reset();
-            this.active = false;
+        if (screenShake.active) {
+            if (this.time <= this.duration) {
+                this.dx = this.speed * Math.sign(this.time) * Math.cos(this.angle);
+                this.dy = this.speed * -Math.sign(this.time) * Math.sin(this.angle);
+                ctx.translate(this.dx, this.dy);
+                this.dFromOriginX += this.dx;
+                this.dFromOriginY += this.dy;
+                this.time++;
+            }
+            else {
+                this.reset();
+                this.active = false;
+                
+            }
+
         }
     },
     reset: function() {
@@ -380,7 +388,8 @@ UI.drawTime = function() {
         if (ctxDiv.style.display == 'block') {
             ctxDiv.style.display = 'none';
         }
-    } else {
+    }
+    else {
         if (ctxDiv.style.display == 'none') {
             var scoresAndNames = "Scores: " + '<br>';
             for (var i in Player.list) {
@@ -401,7 +410,8 @@ UI.draw = function() {
     // draw reload bar
     if (player.reloading) {
         ctxUi.fillStyle = 'red';
-    } else {
+    }
+    else {
         ctxUi.fillStyle = 'green';
     }
     ctxUi.fillRect(canvasWidth * .98, canvasHeight * .025 + (player.ammo.MAX_BULLETS - player.ammo.bullets) * canvasHeight / 21, canvasWidth * .015, player.ammo.bullets / player.ammo.MAX_BULLETS * canvasHeight * .95);
@@ -424,7 +434,8 @@ function drawingObjectsCompare(a, b) {
     // draw functions in order of y then x
     if (a.y === b.y) {
         return b.x - a.x;
-    } else {
+    }
+    else {
         return b.y - a.y;
     }
 }
@@ -434,7 +445,8 @@ function drawingObjectsFilter(entity) {
     var distanceY = Math.abs(Player.list[selfId].y - entity.y);
     if (distanceX > canvasWidth || distanceY > canvasHeight) {
         return false;
-    } else {
+    }
+    else {
         return true;
     }
 }
@@ -452,6 +464,9 @@ function update() {
 }
 
 function draw() {
+    screenOpposeMouse.draw();
+    screenShake.draw();
+
     // Store the current transformation matrix
     ctx.save();
     // Use the identity matrix while clearing the canvas
@@ -496,9 +511,6 @@ function draw() {
         Powerup.list[i].drawSelf();
     for (var i in Bullet.list){
         Bullet.list[i].draw();
-    }
-    screenOpposeMouse.draw();
-    screenShake.draw();
 }
 
 

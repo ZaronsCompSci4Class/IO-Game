@@ -45,6 +45,8 @@ Entity.prototype.getDistance = function(entity) {
 
 // method that checks for all collisions, returns boolean
 Entity.prototype.checkForCollision = function(x, y) {
+
+
     // checks for collisions with map borders
     if (x < 0 || x + PimgW > mapWidth || y < 0 || y + PimgH > mapHeight) {
         return true;
@@ -91,7 +93,8 @@ Entity.prototype.getCollisionWithMap = function(x, y, str) {
 Entity.prototype.isUnderWallLayer = function() {
     if (this.getCollisionWithMap(this.x, this.y - PimgH, `1`)) {
         return false;
-    } else {
+    }
+    else {
         return true;
     }
 }
@@ -173,7 +176,8 @@ Player.prototype.reload = function(state) {
         this.reloading = false;
         return;
         // if completely empty, start reloading
-    } else if (this.ammo.bullets <= 0 && this.reloading === false) {
+    }
+    else if (this.ammo.bullets <= 0 && this.reloading === false) {
         state = `start`;
     }
 
@@ -241,7 +245,8 @@ Player.prototype.waterEffects = function() {
             this.mod.spd /= 2;
             this.state.inWater = true;
         }
-    } else {
+    }
+    else {
         // if they just got out reset speed
         if (this.state.inWater) {
             this.mod.spd *= 2;
@@ -253,28 +258,35 @@ Player.prototype.waterEffects = function() {
 Player.prototype.updateSpd = function() {
     if (this.pressingRight && this.pressingLeft) {
         this.spdX = 0;
-    } else if (this.pressingRight && !this.checkForCollision(this.x + this.mod.spd, this.y)) {
+    }
+    else if (this.pressingRight && !this.checkForCollision(this.x + this.mod.spd, this.y)) {
         this.spdX = this.mod.spd;
-    } else if (this.pressingLeft && !this.checkForCollision(this.x - this.mod.spd, this.y)) {
+    }
+    else if (this.pressingLeft && !this.checkForCollision(this.x - this.mod.spd, this.y)) {
         this.spdX = -this.mod.spd;
-    } else {
+    }
+    else {
         this.spdX = 0;
     }
 
     if (this.pressingUp && this.pressingDown) {
         this.spdY = 0;
-    } else if (this.pressingUp && !this.checkForCollision(this.x, this.y - this.mod.spd)) {
+    }
+    else if (this.pressingUp && !this.checkForCollision(this.x, this.y - this.mod.spd)) {
         this.spdY = -this.mod.spd;
-    } else if (this.pressingDown && !this.checkForCollision(this.x, this.y + this.mod.spd)) {
+    }
+    else if (this.pressingDown && !this.checkForCollision(this.x, this.y + this.mod.spd)) {
         this.spdY = this.mod.spd;
-    } else {
+    }
+    else {
         this.spdY = 0;
     }
 
     // counters movement and sets animCounter = to it
     if (this.spdY !== 0 || this.spdX !== 0) {
         this.animCounter += 0.2;
-    }else{
+    }
+    else {
         this.animCounter = 0; // returns to starting position when not moving
     }
     if (this.animCounter > 4) {
@@ -332,7 +344,8 @@ Player.onConnect = function(socket, name) {
     socket.on(`keyPress`, (data) => {
         if (data.inputId === `reload`) {
             player.reload(`start`);
-        } else if (data.inputId === `left`)
+        }
+        else if (data.inputId === `left`)
             player.pressingLeft = data.state;
         else if (data.inputId === `right`)
             player.pressingRight = data.state;
@@ -398,6 +411,7 @@ function Bullet(param) {
     this.oneHitKill = param.oneHitKill;
     this.timer = 0;
     this.toRemove = false;
+    console.log("Bullet Param Parent = " + this.parent);
 
     Bullet.list[this.id] = this;
 }
@@ -412,16 +426,35 @@ Bullet.create = function(param) {
 
 Bullet.prototype.update = function() {
     this.timer += 1;
-    if (this.timer > 100)
+    if (this.timer > 100 || this.checkForCollision(this.x, this.y))
         this.toRemove = true;
     this.updatePosition();
 
-    for (let i in Player.list) {
+   
+    if (this.checkForCollision(this.x, this.y)) {
+        this.toRemove = true;
+    }
+};
+
+Bullet.prototype.checkForCollision = function(x, y) {
+    if (x < 0 || x + 10 > mapWidth || y < 0 || y + 10 > mapHeight) {//checks if its within map
+        return true;
+    }
+//checks if the a 5x5 hitbox around is colliding with the walls
+    for (let i = -2; i < 3; i++) {
+        for (let j = -2; j < 3; j++) {
+            if (this.getCollisionWithMap(x + i, y + j, `1`)) {
+                return true;
+            }
+        }
+    }
+ for (let i in Player.list) {//checks if its colliding with a player
         const p = Player.list[i];
         if (this.getDistance(p) < 32 && this.parent !== p.id && p.isZombie) {
             if (this.oneHitKill) {
                 p.hp -= 20;
-            } else {
+            }
+            else {
                 p.hp -= 1;
             }
             if (p.hp <= 0) {
@@ -435,35 +468,16 @@ Bullet.prototype.update = function() {
             this.toRemove = true;
         }
     }
-    if (this.checkForCollision(this.x, this.y)) {
-        this.toRemove = true;
-    }
-};
-
-Bullet.prototype.checkForCollision = function(x, y) {
-    if (x < 0 || x + 10 > mapWidth || y < 0 || y + 10 > mapHeight) {
-        return true;
-    }
-    // checks within map array at each of the four corners
-    // checks right side
-    for (let i in Player.list) {
-        const p = Player.list[i];
-        if (this.getCollisionWithMap(x - 10, y + 10) || this.getCollisionWithMap(x - 10, y + 10 * 2)) {
-            return true;
-        } else if (this.getCollisionWithMap(x + 10, y + 10) || this.getCollisionWithMap(x + 10, y + 10 * 2)) {
-            return true;
-        } else if (this.getCollisionWithMap(x, y + 10) || this.getCollisionWithMap(x, y + 10 * 2)) {
-            return true;
-        }
-    }
 };
 
 Bullet.prototype.getInitPack = function() {
+    console.log(this.parent);
     return {
         id: this.id,
         x: this.x,
         y: this.y,
         angle: this.angle,
+        parent: this.parent,
     };
 };
 
@@ -484,7 +498,8 @@ Bullet.update = function() {
         if (bullet.toRemove) {
             delete Bullet.list[i];
             removePack.bullet.push(bullet.id);
-        } else
+        }
+        else
             pack[i] = bullet.getUpdatePack();
     }
     return pack;
@@ -562,7 +577,8 @@ Objective.update = function() {
             delete Objective.list[i];
             removePack.obj.push(obj.id);
             console.log(`obj has been removeed`);
-        } else
+        }
+        else
             pack[i] = obj.getUpdatePack();
     }
     return pack;
@@ -626,7 +642,8 @@ Powerup.create = function(param) {
 Powerup.prototype.update = function() {
     if (this.pickedUp) {
         this.updateAsPlayerAttribute();
-    } else {
+    }
+    else {
         this.updateAsMapObject();
     }
 };
@@ -677,7 +694,8 @@ Powerup.prototype.applyPwr = function() {
     // in the oneHitKill, logic is one-line simple and handled in Player.shootBullet
     if (this.type === `bulletFrenzy`) {
         this.parent.mod.timeBetweenBullets /= 2;
-    } else if (this.type === `speedBurst`) {
+    }
+    else if (this.type === `speedBurst`) {
         this.parent.mod.spd *= 2;
     }
     this.parent.pwrId = null;
@@ -693,14 +711,16 @@ Powerup.prototype.remove = function() {
         // some kinds of powerups don`t need remove logic (like oneHitKill)
         if (this.type === `bulletFrenzy`) {
             this.parent.mod.timeBetweenBullets *= 2;
-        } else if (this.type === `speedBurst`) {
+        }
+        else if (this.type === `speedBurst`) {
             this.parent.mod.spd /= 2;
             this.parent.mod.pwrs[this.type] = null;
         }
         //removes from PlayerPowerups
         delete PlayerPowerups[this.id];
         this.toRemove = true;
-    } else {
+    }
+    else {
         this.toRemove = true;
     }
 };
@@ -732,7 +752,8 @@ Powerup.update = function() {
         if (pwr.toRemove) {
             delete Powerup.list[i];
             removePack.pwr.push(pwr.id);
-        } else {
+        }
+        else {
             pack[i] = pwr.getUpdatePack();
         }
     }
@@ -887,13 +908,15 @@ function gameTimer() {
                 Objective.create();
                 Powerup.create();
             }
-        } else {
+        }
+        else {
             // moves to next roundState when time goes over sectionDuration
             if (sectionTime >= sectionDuration[roundState]) {
                 sectionTime = 0;
                 if (roundState === `displayingScores`) {
                     roundState = `preparing`;
-                } else if (roundState === `preparing`) {
+                }
+                else if (roundState === `preparing`) {
                     startRound();
                 }
 
