@@ -363,6 +363,7 @@ var screenOpposeMouse = {
 
 function translateAll(dx, dy) {
     ctx.translate(dx, dy);
+    ctxSmooth.translate(dx, dy);
 }
 
 UI.miniMap.draw = function() {
@@ -474,6 +475,8 @@ function draw() {
     ctx.restore();
 
     ctxUi.clearRect(0, 0, canvasWidth, canvasHeight);
+    ctxSmooth.clearRect(0, 0, canvasWidth, canvasHeight);
+
     drawMap('floor');
     for (var i = 0; i < drawingObjects.length; i++) {
         var entity = drawingObjects[i];
