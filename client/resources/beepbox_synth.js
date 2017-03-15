@@ -1186,6 +1186,7 @@ var beepbox;
                 }
                 return;
             }
+
             // Check the bounds of the playhead:
             if (this._arpeggioSamples == 0 || this._arpeggioSamples > samplesPerArpeggio) {
                 this._arpeggioSamples = samplesPerArpeggio;
@@ -1216,6 +1217,14 @@ var beepbox;
             if (this._bar >= this.song.loopStart) {
                 this.enableIntro = false;
             }
+
+            // added in checker to end sound prematurely if for sound effect
+            // like bullets
+            if(this.customDuration && this._beat >= this.customDuration){
+                this.pause();
+                this.snapToStart();
+            }
+
             var maxLeadVolume;
             var maxHarmonyVolume;
             var maxBassVolume;

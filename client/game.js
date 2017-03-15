@@ -31,7 +31,7 @@ function Entity(initPack, imgParam) {
         if (this.spriteCycle >= this.image.totalSpriteCycles - 1) {
             this.spriteCycle = 0;
         } else {
-            this.spriteCycle += this.cycleDuration;
+            this.spriteCycle += this.spriteCycleDuration;
         }
         return Math.floor(this.spriteCycle) * this.width;
     }
@@ -147,12 +147,18 @@ function Bullet(initPack) {
 
     Entity.call(this, initPack, Img.bulletSprite);
 
-    this.cycleDuration = .3;
-    console.log("Bullet was called" + this.parent + "," + selfId);
+    this.spriteCycleDuration = .3;
+
     if (this.parent === selfId) {
         // starts shake when bullet spawned if self shot it
         screenShake.start(this.angle);
-        bulletSound.play();
+
+        // handle bulletSound triggering
+        if(bulletSound.playing){
+            bulletSound.snapToStart();
+        }else{
+            bulletSound.play();
+        }
     }
 
     this.draw = function() {
@@ -196,7 +202,7 @@ Objective.list = {};
 function Powerup(initPack) {
     Entity.call(this, initPack, Img.pwrChestSprite);
 
-    this.cycleDuration = .3;
+    this.spriteCycleDuration = .3;
 
     this.drawSelf = function() {
         this.updatePos();
@@ -310,7 +316,6 @@ var screenShake = {
     dFromOriginX: 0,
     dFromOriginY: 0, //keeps track of distance from origin
     start: function(theta) {
-        console.log('start was actived' + theta);
         this.active = true;
         this.angle = theta;
         this.time = -this.duration;

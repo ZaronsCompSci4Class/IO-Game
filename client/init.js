@@ -127,7 +127,9 @@ Img.map.walls.src = '/client/img/walls.png';
 var mapSize = Img.map.floor.width;
 
 // sounds
-var bulletSound = new beepbox.Synth("5s0kbl00e03t5a7g0fj7i0r1w1111f0000d1111c0000h0000v0000o3210b4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4p1o0000Fy0kkkkkkkkkkkkkkk00");
+var bulletSound = new beepbox.Synth("5s0kbl00e00t5a7g0fj7i0r1w1111f0000d1111c0000h0000v0000o3210b4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4h4p1b0000Fy07100");
+// used to end sound after 1 bar
+bulletSound.customDuration = 1;
 var deathSound = new beepbox.Synth("5s0kbl00e00t6a2g00j3i0r1w1111f0000d1111c0000h0000v0000o3210b99p1900Gou9YA0");
 
 var UI = {

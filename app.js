@@ -411,7 +411,6 @@ function Bullet(param) {
     this.oneHitKill = param.oneHitKill;
     this.timer = 0;
     this.toRemove = false;
-    console.log("Bullet Param Parent = " + this.parent);
 
     Bullet.list[this.id] = this;
 }
