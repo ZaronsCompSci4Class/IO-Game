@@ -119,6 +119,7 @@ function Player(param) {
     this.reloading = false;
     this.pwrId = null;
     this.points = 0;
+    
 
     const MAX_BULLETS = 20;
     this.ammo = {
@@ -249,7 +250,7 @@ Player.prototype.waterEffects = function() {
     else {
         // if they just got out reset speed
         if (this.state.inWater) {
-            this.mod.spd *= 2;
+            this.mod.spd *= 1.5;
             this.state.inWater = false;
         }
     }
@@ -394,6 +395,10 @@ Player.onDisconnect = function(socket) {
     removePack.player.push(socket.id);
 }
 Player.update = function() {
+    //console.log(this.timer+" "+time);
+    if(this.timer>time+3){
+        this.removePack();
+    }
     const pack = {};
     for (const i of Object.keys(Player.list)) {
         pack[i] = Player.list[i].update();
@@ -440,8 +445,8 @@ Bullet.prototype.checkForCollision = function(x, y) {
         return true;
     }
 //checks if the a 5x5 hitbox around is colliding with the walls
-    for (let i = -2; i < 3; i++) {
-        for (let j = -2; j < 3; j++) {
+    for (let i = -1; i < 3; i++) {
+        for (let j = -1; j < 3; j++) {
             if (this.getCollisionWithMap(x + i, y + j, `1`)) {
                 return true;
             }
@@ -555,6 +560,7 @@ Objective.prototype.getInitPack = function() {
         x: this.x,
         y: this.y,
         map: this.map,
+        timer: time,
     };
 };
 
@@ -649,8 +655,11 @@ Powerup.prototype.update = function() {
 
 Powerup.prototype.updateAsMapObject = function() {
     // if has existed longer than 20 seconds, removes this
-    if (time - this.timer >= 20) {
+    console.log(`time: `+time+ 'timer '+this.timer);
+    if (time - this.timer >= 3) {
+        this.toRemove = true;
         this.remove();
+        
     }
     // checks for collisions with players
     for (let i in Player.list) {
@@ -660,6 +669,7 @@ Powerup.prototype.updateAsMapObject = function() {
             if (this.x - this.w < p.x + PimgW && this.x + this.w > p.x - PimgW && this.y - this.h < p.y + PimgH && this.y + this.h > p.y - PimgH && Player.list[this.id] !== Player.list[i]) {
                 this.parent = p;
                 this.addPowerupToPlayer();
+                this.pickedUp = true;
             }
         }
     }
@@ -667,8 +677,11 @@ Powerup.prototype.updateAsMapObject = function() {
 
 Powerup.prototype.updateAsPlayerAttribute = function() {
     // if has been active on player for more than duration, will remove effects, then delete this from their pwrs
-    if (time - this.timer >= this.duration && this.uses === 0) {
+    console.log(`time: `+time+ 'timer '+this. timer);
+    if (time - this.timer >= this.duration /*&& this.uses === 0*/) {
+        this.toRemove = true;
         this.remove();
+        
         console.log(`time is up`);
     }
 };
@@ -678,6 +691,7 @@ Powerup.prototype.addPowerupToPlayer = function() {
     this.parent.score += 2;
     this.pickedUp = true;
     this.parent.pwrId = this.id;
+    this.applyPwr();
     console.log(`value: ` + this.parent.pwrId);
     console.log(this.type);
     //marks itthis for removal from Powerup.list
@@ -688,39 +702,52 @@ Powerup.prototype.applyPwr = function() {
     console.log(`q works`);
     this.parent.activeMods[this.pwrId] = (this.type);
     this.parent.mod.pwrs[this.type] = this;
-    this.timer = time;
+    this.parent.timer = time;
     // modifies player based on type of poweru
     // in the oneHitKill, logic is one-line simple and handled in Player.shootBullet
+    console.log("Checking modifier type.");
     if (this.type === `bulletFrenzy`) {
         this.parent.mod.timeBetweenBullets /= 2;
+        console.log("BulletFrenzy Mod applied.");
     }
     else if (this.type === `speedBurst`) {
-        this.parent.mod.spd *= 2;
+        this.parent.mod.spd *=1.5;
+        console.log("SpeedBurst Mod applied.");
     }
     this.parent.pwrId = null;
 };
 
 Powerup.prototype.remove = function() {
+
     if (this.pickedUp) {
+    
         this.parent.pwrId = null;
-        console.log(`pene`);
+        console.log(`Removing powerup effect.`);
         //loops to find the pwr than removes it out
         delete this.parent.activeMods[this.id];
         // undoes modifications on player based on type of powerup
         // some kinds of powerups don`t need remove logic (like oneHitKill)
         if (this.type === `bulletFrenzy`) {
             this.parent.mod.timeBetweenBullets *= 2;
+            console.log("Bullet rate decreased.");
         }
         else if (this.type === `speedBurst`) {
-            this.parent.mod.spd /= 2;
-            this.parent.mod.pwrs[this.type] = null;
+            this.parent.mod.spd /= 1.5;
+            console.log("Speed decreased.");
+           
         }
         //removes from PlayerPowerups
         delete PlayerPowerups[this.id];
+        delete Powerup.list[this.id];
         this.toRemove = true;
     }
     else {
-        this.toRemove = true;
+        console.log("unpickedup powerup remove");
+        if(this.toRemove === false){
+        console.log(`Removing unused powerup.`);
+        this.toRemove = true;}
+        
+        
     }
 };
 
@@ -818,6 +845,7 @@ let initPack = {
     bullet: [],
     obj: [],
     pwr: [],
+    
 };
 let removePack = {
     player: [],
@@ -866,7 +894,7 @@ function startRound() {
 function endRound() {
     roundState = `displayingScores`;
     sectionTime = 0;
-
+    console.log('ROUND IS OVER.');
     for (let i of Object.keys(Player.list)) {
         Player.list[i].restartRound();
     }
@@ -875,6 +903,7 @@ function endRound() {
     }
     for (var i in Powerup.list) {
         Powerup.list[i].remove();
+        console.log('removing powerup');
     }
     roundStarted = false;
     if (pCounter >= 1) {
