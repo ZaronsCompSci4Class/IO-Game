@@ -250,7 +250,7 @@ Player.prototype.waterEffects = function() {
     else {
         // if they just got out reset speed
         if (this.state.inWater) {
-            this.mod.spd *= 1.5;
+            this.mod.spd *= 2;
             this.state.inWater = false;
         }
     }
