@@ -45,9 +45,6 @@ function Entity(initPack, imgParam) {
 
 function Player(initPack) {
     Entity.call(this, initPack, Img.playerSprite);
-    ///powerups
-    this.activePwrs = [];
-    this.numOfPwrs = 0;
     this.reload = false;
     this.width = (Img.playerSprite.width / 4);
     this.height = (Img.playerSprite.height / 4);
@@ -94,34 +91,27 @@ function Player(initPack) {
         ctx.fillStyle = 'green';
         ctx.fillRect(this.relativeX - hpWidth / 2, this.relativeY - 40, hpWidth, 4);
         if (this.id === selfId && !this.isZombie) {
+            
 
             ////////drawing powerup
-            if (this.bulletFrenzy)
-                this.activePwrs[0] = true;
-            else
-                this.activePwrs[0] = false;
-            if (this.oneHitKill)
-                this.activePwrs[1] = true;
-            else
-                this.activePwrs[1] = false;
-
-            this.numOfPwrs = 0;
-            for (var i in this.activePwrs) {
-                if (this.activePwrs[i])
-                    this.numOfPwrs++;
-            }
-
             var pwrXMod;
             var pwrYMod;
-            if (this.bulletFrenzy) {
-                pwrXMod = 0;
-                pwrYMod = 0;
+            for(var i in this.activeMods){
+                if(this.activeMods[i] === "bulletFrenzy"){
+                    pwrXMod = 0;
+                    pwrYMod = 0;
+                }else if(this.activeMods[i] === "oneHitKill"){
+                    pwrXMod = Img.pwrSprite / 3 * 2;
+                    pwrYMod = Img.pwrSprite / 2;
+                }else if(this.activeMods[i] === "speedBurst"){
+                    pwrXMod = Img.pwrSprite / 3;
+                    pwrYMod = Img.pwrSprite / 2;
+                }else{
+                    console.log("no active mods");
+                }
             }
-            if (this.oneHitKill) {
-                pwrXMod = Img.pwrSprite / 3 * 2;
-                pwrYMod = Img.pwrSprite / 2;
-            }
-            if (this.numOfPwrs >= 1) {
+            ///Isn't going wthorugh rin
+            if (this.activeMods.length >= 1) {
                 ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2, ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs, ctxMiniY, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2);
                 console.log("belly");
                 //console.log("x " + ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs);
@@ -189,7 +179,8 @@ function Powerup(initPack) {
     this.drawSelf = function() {
         this.updatePos();
         var cycleMod = this.getCycleMod();
-        ctx.drawImage(this.image, cycleMod, 0, this.width, this.height, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
+        if(!this.pickedUp)
+            ctx.drawImage(this.image, cycleMod, 0, this.width, this.height, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
 
     }
 

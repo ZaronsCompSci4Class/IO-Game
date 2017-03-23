@@ -124,7 +124,7 @@ function Player(param) {
         mags: 1,
     };
 
-    //Creates an array of active powerups
+    //Creates an array of active powerups, stores them as strings so they can be sent to client
     this.activeMods = {};
     // object for modifiables and powerups
     this.mod = {
@@ -320,6 +320,7 @@ Player.prototype.getUpdatePack = function() {
         ammo: this.ammo,
         activeMods: this.activeMods,
         reloading: this.reloading,
+        activeMods: this.activeMods,
     };
 };
 
@@ -580,14 +581,13 @@ function Powerup(param) {
     Entity.call(this, param);
     this.id = Math.random();
     this.x = 264;
-    this.y = 24;
+    this.y = 24 + 100 * (this.id);
     this.timer = time;
     this.toRemove = false;
     this.pickedUp = false;
     this.w = (75 / 2);
     this.h = (75 / 2);
-    this.pickedUp = false;
-
+    console.log("powerup created");
     // assigns random powerup type
     switch (Math.floor(Math.random() * 3)) {
         case 0:
@@ -622,19 +622,20 @@ Powerup.create = function(param) {
     return p;
 }
 
-// same method to access Powerup updates if on player or if still on map
+// same method to access Powerup updates if on player or if still on map...
 Powerup.prototype.update = function() {
-    if (this.pickedUp) {
+    if (this.pickedUp && !this.toRemove) {
         this.updateAsPlayerAttribute();
-    } else {
+    } else if(!this.pickedUp && !this.toRemove){
         this.updateAsMapObject();
     }
 };
 
 Powerup.prototype.updateAsMapObject = function() {
-    // if has existed longer than 20 seconds, removes this
-    if (time - this.timer >= 20) {
+    // if has existed longer than 15 seconds, removes this
+    if (time - this.timer >= 15) {
         this.remove();
+        console.log("despawn Powerup");
     }
     // checks for collisions with players
     for (let i in Player.list) {
@@ -653,7 +654,7 @@ Powerup.prototype.updateAsPlayerAttribute = function() {
     // if has been active on player for more than duration, will remove effects, then delete this from their pwrs
     if (time - this.timer >= this.duration && this.uses === 0) {
         this.remove();
-        console.log(`time is up`);
+        console.log(`Take affects off player`);
     }
 };
 
@@ -662,10 +663,9 @@ Powerup.prototype.addPowerupToPlayer = function() {
     this.parent.score += 2;
     this.pickedUp = true;
     this.parent.pwrId = this.id;
-    console.log(`value: ` + this.parent.pwrId);
-    console.log(this.type);
+    console.log("You picked up "+ this.type);
     //marks itthis for removal from Powerup.list
-    this.toRemove = true;
+    //this.toRemove = true;
 };
 
 Powerup.prototype.applyPwr = function() {
@@ -692,11 +692,11 @@ Powerup.prototype.remove = function() {
         // undoes modifications on player based on type of powerup
         // some kinds of powerups don`t need remove logic (like oneHitKill)
         if (this.type === `bulletFrenzy`) {
-            this.parent.mod.timeBetweenBullets *= 2;
+            this.parent.mod.timeBetweenBullets *= 2
         } else if (this.type === `speedBurst`) {
             this.parent.mod.spd /= 2;
-            this.parent.mod.pwrs[this.type] = null;
         }
+        this.parent.mod.pwrs[this.type] = null;
         //removes from PlayerPowerups
         delete PlayerPowerups[this.id];
         this.toRemove = true;
@@ -710,7 +710,7 @@ Powerup.prototype.getInitPack = function() {
         id: this.id,
         x: this.x,
         y: this.y,
-        map: this.map,
+        pickedUp: this.pickedUp,
     };
 };
 
@@ -719,6 +719,7 @@ Powerup.prototype.getUpdatePack = function() {
         id: this.id,
         x: this.x,
         y: this.y,
+        pickedUp: this.pickedUp
     };
 };
 
@@ -883,7 +884,7 @@ function gameTimer() {
                 endRound();
             }
             // spawn new obj and pwr every 15 seconds while game is started
-            if (sectionTime % 15 === 0) {
+            if (sectionTime % 20 === 0) {
                 Objective.create();
                 Powerup.create();
             }
