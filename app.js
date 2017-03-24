@@ -396,12 +396,14 @@ Player.onDisconnect = function(socket) {
 }
 Player.update = function() {
     //console.log(this.timer+" "+time);
+   
     if(this.timer>time+3){
         this.removePack();
     }
     const pack = {};
     for (const i of Object.keys(Player.list)) {
         pack[i] = Player.list[i].update();
+        console.log(Player.list[i].activeMods);
     }
     return pack;
 }
@@ -539,7 +541,7 @@ Objective.create = function(param) {
 };
 
 Objective.prototype.update = function() {
-    if (time - this.timer >= 20)
+    if (time - this.timer >= 5)
         this.toRemove = true;
 
     for (let i in Player.list) {
@@ -655,8 +657,8 @@ Powerup.prototype.update = function() {
 
 Powerup.prototype.updateAsMapObject = function() {
     // if has existed longer than 20 seconds, removes this
-    console.log(`time: `+time+ 'timer '+this.timer);
-    if (time - this.timer >= 3) {
+    console.log(`time: `+time+ 'timer '+this.timer+ " "+ this.type);
+    if (time - this.timer >= 20) {
         this.toRemove = true;
         this.remove();
         
@@ -678,7 +680,7 @@ Powerup.prototype.updateAsMapObject = function() {
 Powerup.prototype.updateAsPlayerAttribute = function() {
     // if has been active on player for more than duration, will remove effects, then delete this from their pwrs
     console.log(`time: `+time+ 'timer '+this. timer);
-    if (time - this.timer >= this.duration /*&& this.uses === 0*/) {
+    if (time - this.timer >= 5 /*&& this.uses === 0*/) {
         this.toRemove = true;
         this.remove();
         
@@ -711,7 +713,7 @@ Powerup.prototype.applyPwr = function() {
         console.log("BulletFrenzy Mod applied.");
     }
     else if (this.type === `speedBurst`) {
-        this.parent.mod.spd *=1.5;
+        this.parent.mod.spd *=3;
         console.log("SpeedBurst Mod applied.");
     }
     this.parent.pwrId = null;
@@ -732,7 +734,7 @@ Powerup.prototype.remove = function() {
             console.log("Bullet rate decreased.");
         }
         else if (this.type === `speedBurst`) {
-            this.parent.mod.spd /= 1.5;
+            this.parent.mod.spd /= 3;
             console.log("Speed decreased.");
            
         }
@@ -745,7 +747,10 @@ Powerup.prototype.remove = function() {
         console.log("unpickedup powerup remove");
         if(this.toRemove === false){
         console.log(`Removing unused powerup.`);
-        this.toRemove = true;}
+        this.toRemove = true;}else{
+            delete Powerup.list[this.id];
+        }
+        
         
         
     }
