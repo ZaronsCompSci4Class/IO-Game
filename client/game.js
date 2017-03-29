@@ -1,4 +1,3 @@
-var framerate = 1000 / 40;
 var selfMouseAngle;
 var mouseX;
 var mouseY;
@@ -31,7 +30,7 @@ function Entity(initPack, imgParam) {
         if (this.spriteCycle >= this.image.totalSpriteCycles - 1) {
             this.spriteCycle = 0;
         } else {
-            this.spriteCycle += this.cycleDuration;
+            this.spriteCycle += this.spriteCycleDuration;
         }
         return Math.floor(this.spriteCycle) * this.width;
     }
@@ -67,11 +66,32 @@ function Player(initPack) {
             var imgPicker = Img.playerSprite;
         else if (!this.isZombie && this.skins == "boughtHarambe")
             var imgPicker = Img.harambeSprite;
+        else if (!this.isZombie && this.skins == "boughtSkin2")
+            var imgPicker = Img.wizSprite;
+        else if (!this.isZombie && this.skins == "boughtSkin3")
+            var imgPicker = Img.solamancerSprite;
+        else if (!this.isZombie && this.skins == "boughtSkin4")
+            var imgPicker = Img.germanSprite;
+        else if (!this.isZombie && this.skins == "boughtSkin5")
+            var imgPicker = Img.barrelSprite;
         else
             var imgPicker = Img.playerSprite;
 
         ctx.drawImage(imgPicker, moveMod * this.width, directionMod * this.height, this.width, this.height, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
+        if(this.inWater){
+            this.drawWaterEffects(moveMod, directionMod);
+        }
+    }
 
+    this.drawWaterEffects = function(moveMod, directionMod){
+        if(this.isZombie){
+            var img = Img.playerSprite2.water;
+            ctx.drawImage(img, moveMod * img.width, directionMod * img.height, img.width, img.height,  this.relativeX, this.relativeX, img.width, img.height);
+        }else{
+            var img = Img.playerSprite.water;
+            console.log(img+" "+img.width + " " + img.height + " " + this.relativeX + " " + this.relativeY + " " + directionMod * img.height + " " + moveMod * img.height);
+            ctx.drawImage(img, moveMod * img.width, directionMod * img.height, img.width, img.height,  this.relativeX, this.relativeX, img.width, img.height);
+        }
     }
 
     this.getDotColor = function() {
@@ -85,53 +105,75 @@ function Player(initPack) {
         return dotColor;
     }
 
+    this.drawName = function() {
+        ctxSmooth.fillText(this.name, this.relativeX, this.relativeY);
+        ctxSmooth.fillStyle = "green";
+    }
+
     this.drawAttributes = function() {
-        //draw health bar
+        // draw health bar
         var hpWidth = 30 * this.hp / this.hpMax;
         ctx.fillStyle = 'green';
         ctx.fillRect(this.relativeX - hpWidth / 2, this.relativeY - 40, hpWidth, 4);
+
+        this.drawName();
+
         if (this.id === selfId && !this.isZombie) {
             
 
             ////////drawing powerup
-            var pwrXMod;
-            var pwrYMod;
+            this.pwrCounter = 0;
+            this.pwrXMod;
+            this.pwrYMod;
             for(var i in this.activeMods){
+                this.pwrCounter++;
                 if(this.activeMods[i] === "bulletFrenzy"){
-                    pwrXMod = 0;
-                    pwrYMod = 0;
+                    this.pwrXMod = 0;
+                    this.pwrYMod = 0;
                 }else if(this.activeMods[i] === "oneHitKill"){
-                    pwrXMod = Img.pwrSprite / 3 * 2;
-                    pwrYMod = Img.pwrSprite / 2;
+                    this.pwrXMod = Img.pwrSprite / 3 * 2;
+                    this.pwrYMod = Img.pwrSprite / 2;
                 }else if(this.activeMods[i] === "speedBurst"){
-                    pwrXMod = Img.pwrSprite / 3;
-                    pwrYMod = Img.pwrSprite / 2;
+                    this.pwrXMod = Img.pwrSprite / 3;
+                    this.pwrYMod = Img.pwrSprite / 2;
                 }else{
                     console.log("no active mods");
                 }
             }
             ///Isn't going wthorugh rin
-            if (this.activeMods.length >= 1) {
-                ctx.drawImage(Img.pwrSprite, pwrXMod, pwrYMod, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2, ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs, ctxMiniY, Img.pwrSprite.width / 3, Img.pwrSprite.height / 2);
+            while (this.pwrCounter >= 1) {
+                ctx.fillRect(this.relativeX - hpWidth / 2-(this.pwrCounter*5), this.relativeY - 60, 4, 4);
+                //ctx.drawImage(Img.pwrSprite, this.pwrXMod, this.pwrYMod, 210 / 3, 190 / 2, ctxUi.miniX - (210 / 3) * this.pwrCounter, ctxUi.miniY, 210 / 3, 190 / 2);
                 console.log("belly");
                 //console.log("x " + ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs);
+            this.pwrCounter--;
             }
         }
     }
 
     Player.list[this.id] = this;
 
-
     return this;
 }
 Player.list = {};
 
 function Bullet(initPack) {
+
     Entity.call(this, initPack, Img.bulletSprite);
 
-    this.cycleDuration = .3;
-    //starts shake when bullet spawned
-    screenShake.start(this.angle);
+    this.spriteCycleDuration = .3;
+
+    if (this.parent === selfId) {
+        // starts shake when bullet spawned if self shot it
+        screenShake.start(this.angle);
+
+        // handle bulletSound triggering
+        if(bulletSound.playing){
+            bulletSound.snapToStart();
+        }else{
+            bulletSound.play();
+        }
+    }
 
     this.draw = function() {
         this.updatePos();
@@ -174,7 +216,7 @@ Objective.list = {};
 function Powerup(initPack) {
     Entity.call(this, initPack, Img.pwrChestSprite);
 
-    this.cycleDuration = .3;
+    this.spriteCycleDuration = .3;
 
     this.drawSelf = function() {
         this.updatePos();
@@ -198,8 +240,9 @@ Powerup.list = {};
 var selfId = null;
 
 socket.on('init', function(data) {
-    if (data.selfId)
+    if (data.selfId) {
         selfId = data.selfId;
+    }
     if (data.player) {
         for (var i = 0; i < data.player.length; i++) {
             new Player(data.player[i]);
@@ -283,7 +326,7 @@ var screenShake = {
     dx: 0,
     dy: 0,
     speed: 2, //constant speed of shake
-    duration: .1 * framerate, //coefficient = number of seconds
+    duration: .07 * framerate, //coefficient = number of seconds
     time: this.duration,
     dFromOriginX: 0,
     dFromOriginY: 0, //keeps track of distance from origin
@@ -294,21 +337,25 @@ var screenShake = {
         this.reset();
     },
     draw: function() {
-        if (this.time <= this.duration) {
-            this.dx = this.speed * Math.sign(this.time) * Math.cos(this.angle);
-            this.dy = this.speed * -Math.sign(this.time) * Math.sin(this.angle);
-            ctx.translate(this.dx, this.dy);
-            this.dFromOriginX += this.dx;
-            this.dFromOriginY += this.dy;
-            this.time++;
-        } else {
-            this.reset();
-            this.active = false;
+        if (screenShake.active) {
+            if (this.time <= this.duration) {
+                this.dx = this.speed * Math.sign(this.time) * Math.cos(this.angle);
+                this.dy = this.speed * -Math.sign(this.time) * Math.sin(this.angle);
+                ctx.translate(this.dx, this.dy);
+                this.dFromOriginX += this.dx;
+                this.dFromOriginY += this.dy;
+                this.time++;
+            } else {
+                this.reset();
+                this.active = false;
+
+            }
+
         }
     },
     reset: function() {
         if (this.dFromOriginX !== 0 || this.dFromOriginY !== 0) {
-            ctx.translate(-this.dFromOriginX, -this.dFromOriginY); //eliminates discrepancy
+            translateAll(-this.dFromOriginX, -this.dFromOriginY); //eliminates discrepancy
             this.dFromOriginX = 0, this.dFromOriginY = 0;
         }
     }
@@ -325,9 +372,14 @@ var screenOpposeMouse = {
         var dy = this.lastTotalDisplacementY - newTotalDisplacementY;
         this.lastTotalDisplacementX = newTotalDisplacementX;
         this.lastTotalDisplacementY = newTotalDisplacementY;
-        ctx.translate(dx, dy);
+        translateAll(dx, dy);
     },
 };
+
+function translateAll(dx, dy) {
+    ctx.translate(dx, dy);
+    ctxSmooth.translate(dx, dy);
+}
 
 UI.miniMap.draw = function() {
     ctxUi.drawImage(Img.miniMap, ctxUi.miniX, ctxUi.miniY, ctxUi.miniSize, ctxUi.miniSize);
@@ -392,17 +444,37 @@ socket.on('roundInfo', function(data) {
     sectionTime = data.sectionTime;
 });
 
-setInterval(function() {
-    if (!selfId)
-        return;
-    update();
-    draw();
-    partTime++;
-}, 40);
+var drawingObjects = [];
+
+function drawingObjectsCompare(a, b) {
+    // draw functions in order of y then x
+    if (a.y === b.y) {
+        return b.x - a.x;
+    } else {
+        return b.y - a.y;
+    }
+}
+
+function drawingObjectsFilter(entity) {
+    var distanceX = Math.abs(Player.list[selfId].x - entity.x);
+    var distanceY = Math.abs(Player.list[selfId].y - entity.y);
+    if (distanceX > canvasWidth || distanceY > canvasHeight) {
+        return false;
+    } else {
+        return true;
+    }
+}
 
 function update() {
-    for (var i in Player.list)
+    for (var i in Player.list) {
         Player.list[i].updatePos();
+    }
+    var entityArr = [];
+    for (var i in Player.list) {
+        entityArr.push(Player.list[i]);
+    }
+    drawingObjects = entityArr.filter(drawingObjectsFilter);
+    drawingObjects.sort(drawingObjectsCompare);
 }
 
 function draw() {
@@ -418,32 +490,46 @@ function draw() {
     ctx.restore();
 
     ctxUi.clearRect(0, 0, canvasWidth, canvasHeight);
+    ctxSmooth.clearRect(0, 0, canvasWidth, canvasHeight);
+
     drawMap('floor');
-    for (var i in Player.list) {
-        if (Player.list[i].underWallLayer) {
-            Player.list[i].drawSelf();
+    for (var i = 0; i < drawingObjects.length; i++) {
+        var entity = drawingObjects[i];
+        if (entity instanceof Player) {
+            if (entity.underWallLayer) {
+                entity.drawSelf();
+            }
         }
     }
     drawMap('walls');
     UI.draw();
     drawScore();
-    for (var i in Player.list) {
-        if (!Player.list[i].underWallLayer) {
-            Player.list[i].drawSelf();
+    for (var i = 0; i < drawingObjects.length; i++) {
+        var entity = drawingObjects[i];
+        if (entity instanceof Player) {
+            if (!entity.underWallLayer) {
+                entity.drawSelf();
+            }
+        }
+    }
+    for (var i = 0; i < drawingObjects.length; i++) {
+        var entity = drawingObjects[i];
+        if (entity instanceof Player) {
+            entity.drawAttributes();
         }
     }
     for (var i in Player.list) {
         Player.list[i].drawDot();
-        Player.list[i].drawAttributes();
     }
     for (var i in Objective.list)
         Objective.list[i].drawSelf();
     for (var i in Powerup.list)
         Powerup.list[i].drawSelf();
-    for (var i in Bullet.list)
+    for (var i in Bullet.list) {
         Bullet.list[i].draw();
-}
+    }
 
+}
 
 var drawMap = function(part) {
     var player = Player.list[selfId];
@@ -487,6 +573,9 @@ document.onkeydown = function(event) {
     }
     if (event.keyCode === 81) { // queue q
         socket.emit('queue');
+    }
+    if (event.keyCode === 71) { // queue g
+        socket.emit('gtest');
     }
     if (event.keyCode === 77) { // m for minimap *DOES NOT WORK YET*
         if (miniMapHolder.style.display != 'none') {
@@ -542,10 +631,24 @@ document.onmousemove = function(event) {
     mouseX = event.clientX - window.innerWidth / 2;
     mouseY = event.clientY - window.innerHeight / 2;
     selfMouseAngle = -Math.atan2(mouseY, mouseX);
-    if (selfMouseAngle < 0)
+    if (selfMouseAngle < 0) {
         selfMouseAngle = 2 * Math.PI + selfMouseAngle;
+    }
     socket.emit('keyPress', {
         inputId: 'mouseAngle',
         state: selfMouseAngle
     });
 }
+
+var onIntroScreen = true;
+function gameFunc() {
+    // if connection made, run game loop, otherwise, do introAnimation
+    if(onIntroScreen){
+        onIntroScreen = introAnimation();
+    }else{
+        update();
+        draw();
+        partTime++;
+    }
+}
+var intervalId = setInterval(gameFunc, 40);

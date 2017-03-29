@@ -9,37 +9,40 @@ body,
     background-color: black;
 }
 
-#signDivChild {
-    background: #119305;
-    border-radius: 15px;
-    width: 300px;
-    height: 200px;
+#signDiv {
     position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+input#signDiv-username {
+    position: absolute;
+    top: 85%;
+    width: 18%;
+    height: 5%;
+    background: #042941;
+    border: 0;
+    border-bottom: 1vmax solid #345e79;
+    color: white;
+    font-size: 2vmax;
+
+    /* to center element */
     left: 50%;
-    top: 50%;
-    margin: -100px 0 0 -150px;
-}
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
 
-#box {
-    position: absolute;
-    top: 5%;
-    left: 10%;
-}
-
-#signDiv-signIn {
-    position: absolute;
-    left: 50%;
-    border-radius: 15px;
-}
-
-h1 {
-    font-weight: bold;
     text-align: center;
-    size: 20px;
+}
+
+#signDiv-button {
+    position: absolute;
+    border-radius: 15px;
+    display: none;
 }
 
 #gameDiv {
-    display: none;
+    visibility: hidden;
 }
 
 #ctx-div {
@@ -55,30 +58,37 @@ h1 {
     top: 100px;
 }
 
-canvas#ctx {
-    cursor: crosshair;
+canvas {
+    margin: 0px;
     position: absolute;
+    width: 100%;
+}
+
+canvas.centered {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 100%;
+}
+
+canvas.pixelated {
+    /* pixelated for chrome only */
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+canvas#ctx {
     z-index: 0;
+    visibility: visible;
 }
 
 canvas#ctx-ui {
-    position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    z-index: 0;
 }
 
-canvas {
-    margin 0px;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -webkit-crisp-edges;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
+canvas#autorendered-canvas {
+    width: 100%;
+    height: 100%;
 }
 
 #shop-div {
@@ -86,6 +96,7 @@ canvas {
     height: 500px;
     margin: 0 auto;
     padding: 0px;
+    z-index: 2;
 }
 
 #shop-button {
@@ -108,6 +119,23 @@ canvas {
     top: 100px;
 }
 
+#uiDiv {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#statusbar {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    /* pixelated for chrome only */
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
 #chat {
     background-color: rgba(100, 100, 100, 0.4);
     position: absolute;
@@ -115,6 +143,7 @@ canvas {
     top: 75%;
     height: 25%;
     width: 20%;
+    z-index: 2;
 }
 
 #chat-text {
@@ -125,4 +154,9 @@ canvas {
 #chat-input {
     height: 100%;
     width: 100%;
+}
+
+span.nameTag {
+    position: absolute;
+    color: white;
 }

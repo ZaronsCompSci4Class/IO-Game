@@ -116,6 +116,8 @@ function Player(param) {
     this.reloading = false;
     this.pwrId = null;
     this.points = 0;
+    this.maxPPS = 30;
+    this.pointTimer = 0;
 
     const MAX_BULLETS = 20;
     this.ammo = {
@@ -205,7 +207,10 @@ Player.prototype.reload = function(state) {
 Player.prototype.update = function() {
     this.updateSpd();
     this.updatePosition();
-
+    if(sectionTime-this.pointTimer > 0){
+        this.updateScore();
+    	this.pointTimer = sectionTime;
+    }
     if (!this.isZombie) {
         // if has a magazine and ammo inside, and more than timeBetweenBullets time has passed after the last shot, shoot a new Bullet
         if (this.pressingAttack && time - this.lastShotTime >= this.mod.timeBetweenBullets && this.ammo.mags > 0 && !this.reloading) {
@@ -250,6 +255,18 @@ Player.prototype.waterEffects = function() {
     }
 };
 
+Player.prototype.updateScore = function() {
+    //increases alive players score only while the round is going
+    if(!this.isZombie && roundStarted && roundState === `started`){
+        //the score given per second will be based on how long into the night the player survives
+        this.score+=(Math.floor)(this.maxPPS*(sectionTime/sectionDuration.started));
+    }
+    //decreases score while players are zombies depending on how many zombies there are and player's total score
+    if(this.isZombie && roundStarted && roundState === `started` && this.score<=0){
+        this.score+=(Math.floor)(this.maxPPS*(sectionTime/sectionDuration.started));
+    }
+}
+
 Player.prototype.updateSpd = function() {
     if (this.pressingRight && this.pressingLeft) {
         this.spdX = 0;
@@ -286,6 +303,11 @@ Player.prototype.updateSkins = function(skin) {
     this.skins = skin;
 };
 
+// method bound to g to test things quickly
+Player.prototype.test = function(){
+
+}
+
 Player.prototype.getInitPack = function() {
     return {
         id: this.id,
@@ -320,7 +342,7 @@ Player.prototype.getUpdatePack = function() {
         ammo: this.ammo,
         activeMods: this.activeMods,
         reloading: this.reloading,
-        activeMods: this.activeMods,
+        inWater: this.state.inWater,
     };
 };
 
@@ -353,8 +375,24 @@ Player.onConnect = function(socket, name) {
             PlayerPowerups[player.pwrId].applyPwr();
         }
     });
+    
+    socket.on('gtest', function() {
+        player.test();
+    });
 
     socket.on(`boughtHarambe`, function(data) {
+        player.updateSkins(data);
+    });
+    socket.on(`boughtSkin2`, function(data) {
+        player.updateSkins(data);
+    });
+    socket.on(`boughtSkin3`, function(data) {
+        player.updateSkins(data);
+    });
+    socket.on(`boughtSkin4`, function(data) {
+        player.updateSkins(data);
+    });
+    socket.on(`boughtSkin5`, function(data) {
         player.updateSkins(data);
     });
     socket.on(`updateScore`, function(data) {
@@ -382,6 +420,11 @@ Player.onDisconnect = function(socket) {
     removePack.player.push(socket.id);
 }
 Player.update = function() {
+    //console.log(this.timer+" "+time);
+   
+    if(this.timer>time+3){
+        this.removePack();
+    }
     const pack = {};
     for (const i of Object.keys(Player.list)) {
         pack[i] = Player.list[i].update();
@@ -413,10 +456,27 @@ Bullet.create = function(param) {
 
 Bullet.prototype.update = function() {
     this.timer += 1;
-    if (this.timer > 100)
+    if (this.timer > 100 || this.checkForCollision(this.x, this.y))
         this.toRemove = true;
     this.updatePosition();
 
+};
+
+Bullet.prototype.checkForCollision = function(x, y) {
+    if (x < 0 || x + 10 > mapWidth || y < 0 || y + 10 > mapHeight) {
+        return true;
+    }
+
+    //checks if the a 5x5 hitbox around is colliding with the walls
+    for (let i = -1; i < 3; i++) {
+        for (let j = -1; j < 3; j++) {
+            if (this.getCollisionWithMap(x + i, y + j, `1`)) {
+                return true;
+            }
+        }
+    }
+
+//checks if its colliding with a player
     for (let i in Player.list) {
         const p = Player.list[i];
         if (this.getDistance(p) < 32 && this.parent !== p.id && p.isZombie) {
@@ -428,33 +488,12 @@ Bullet.prototype.update = function() {
             if (p.hp <= 0) {
                 let shooter = Player.list[this.parent];
                 if (shooter) {
-                    shooter.score += 1;
+                    shooter.score += 100;
                 }
                 p.hp = p.hpMax;
                 p.spawn();
             }
             this.toRemove = true;
-        }
-    }
-    if (this.checkForCollision(this.x, this.y)) {
-        this.toRemove = true;
-    }
-};
-
-Bullet.prototype.checkForCollision = function(x, y) {
-    if (x < 0 || x + 10 > mapWidth || y < 0 || y + 10 > mapHeight) {
-        return true;
-    }
-    // checks within map array at each of the four corners
-    // checks right side
-    for (let i in Player.list) {
-        const p = Player.list[i];
-        if (this.getCollisionWithMap(x - 10, y + 10) || this.getCollisionWithMap(x - 10, y + 10 * 2)) {
-            return true;
-        } else if (this.getCollisionWithMap(x + 10, y + 10) || this.getCollisionWithMap(x + 10, y + 10 * 2)) {
-            return true;
-        } else if (this.getCollisionWithMap(x, y + 10) || this.getCollisionWithMap(x, y + 10 * 2)) {
-            return true;
         }
     }
 };
@@ -465,6 +504,7 @@ Bullet.prototype.getInitPack = function() {
         x: this.x,
         y: this.y,
         angle: this.angle,
+        parent: this.parent.id,
     };
 };
 
@@ -485,8 +525,9 @@ Bullet.update = function() {
         if (bullet.toRemove) {
             delete Bullet.list[i];
             removePack.bullet.push(bullet.id);
-        } else
+        } else {
             pack[i] = bullet.getUpdatePack();
+        }
     }
     return pack;
 };
@@ -529,7 +570,7 @@ Objective.prototype.update = function() {
         if (!p.isZombie) {
             if (this.x - this.w < p.x + PimgW && this.x + this.w > p.x - PimgW && this.y - this.h < p.y + PimgH && this.y + this.h > p.y - PimgH && Player.list[this.id] !== Player.list[i]) {
                 console.log(`gem detected`);
-                p.score += 10;
+                p.score += 1000;
                 this.toRemove = true;
             }
         }
@@ -542,6 +583,7 @@ Objective.prototype.getInitPack = function() {
         x: this.x,
         y: this.y,
         map: this.map,
+        timer: time,
     };
 };
 
@@ -660,17 +702,14 @@ Powerup.prototype.updateAsPlayerAttribute = function() {
 
 Powerup.prototype.addPowerupToPlayer = function() {
     // adds powerup to player and handles modifications
-    this.parent.score += 2;
+    this.parent.score += 50;
     this.pickedUp = true;
     this.parent.pwrId = this.id;
     console.log("You picked up "+ this.type);
-    //marks itthis for removal from Powerup.list
-    //this.toRemove = true;
 };
 
 Powerup.prototype.applyPwr = function() {
-    console.log(`q works`);
-    this.parent.activeMods[this.pwrId] = (this.type);
+    this.parent.activeMods[this.id] = (this.type);
     this.parent.mod.pwrs[this.type] = this;
     this.timer = time;
     // modifies player based on type of poweru
@@ -686,9 +725,10 @@ Powerup.prototype.applyPwr = function() {
 Powerup.prototype.remove = function() {
     if (this.pickedUp) {
         this.parent.pwrId = null;
-        console.log(`pene`);
+        console.log(`Removing powerup effect.`);
         //loops to find the pwr than removes it out
         delete this.parent.activeMods[this.id];
+        console.log("active mod number  " + this.parent.activeMods.length);
         // undoes modifications on player based on type of powerup
         // some kinds of powerups don`t need remove logic (like oneHitKill)
         if (this.type === `bulletFrenzy`) {
@@ -817,7 +857,7 @@ let roundState = `preparing`;
 const sectionDuration = {
     displayingScores: 10,
     preparing: 10,
-    started: 60,
+    started: 180,
 };
 
 function pickZombie() {
@@ -883,7 +923,7 @@ function gameTimer() {
             if (sectionTime >= sectionDuration.started || allZombies) {
                 endRound();
             }
-            // spawn new obj and pwr every 15 seconds while game is started
+            // spawn new obj and pwr every 20 seconds while game is started
             if (sectionTime % 20 === 0) {
                 Objective.create();
                 Powerup.create();

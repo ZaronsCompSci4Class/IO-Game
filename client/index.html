@@ -11,23 +11,23 @@
 <body>
 
     <div id="signDiv">
-        <img src="https://s15.postimg.org/fbg59fm2z/frame1.png" />
-        <div id="signDivChild">
-            <form onSubmit="signIn(); return false;">
-                <div id="box">Username:
-                    <input id="signDiv-username" type="text" maxlength="12"></input><br>
-                    <input id="signDiv-signIn" type="submit" value="Play!"></input>
-            </form><br><br><br>
-            <h1>Zaron.io</h1>
-            </div>
-        </div>
+        <form onSubmit="signIn(); return false;" autocomplete="off">
+            <input id="signDiv-username" type="text" maxlength="12"></input><br>
+            <input id="signDiv-button" type="submit" value="Play!"></input>
+        </form><br><br><br>
     </div>
 
 
     <div id="gameDiv">
-        <canvas id="ctx"></canvas>
-        <canvas id="ctx-ui"></canvas>
+        <canvas id="ctx" class="pixelated centered"></canvas>
+        <canvas id="ctx-ui" class="pixelated"></canvas>
+        <canvas id="autorendered-canvas" class="centered"></canvas>
         <div id="ctx-div" style="display: none"></div>
+
+        <div id="uiDiv">
+            <img id="statusbar" src="client/img/ui/ui_statusbar.png" />
+        </div>
+
         <div id="shop-div">
             <button id="shop-button">Point Shop</button>
             <div id="shop-div-menu">
@@ -48,8 +48,9 @@
             </form>
         </div>
     </div>
-    </div>
+    <script src="client/resources/beepbox_synth.js"></script>
     <script src="/client/init.js"></script>
+    <script src="/client/intro_screen.js"></script>
     <script src="/client/game.js"></script>
 </body>
 
