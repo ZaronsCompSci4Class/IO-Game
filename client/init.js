@@ -140,6 +140,8 @@ Img.playerSprite2 = new Image();
 Img.playerSprite2.src = '/client/img/reptilian_sheet.png';
 Img.playerSprite2.water = new Image();
 Img.playerSprite2.water.src = '/client/img/reptilian_water_sheet.png';
+Img.bigReptilianSprite = new Image();
+Img.bigReptilianSprite.src = "/client/img/big_reptilian_sheet.png";
 
 Img.harambeSprite = new Image();
 Img.harambeSprite.src = '/client/img/harambe_sheet.png';

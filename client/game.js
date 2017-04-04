@@ -27,10 +27,10 @@ function Entity(initPack, imgParam) {
     }
 
     this.getCycleMod = function() {
-        if (this.spriteCycle >= this.image.totalSpriteCycles - 1) {
+        this.spriteCycle += 1000 / (framerate *  this.spriteCycleDuration);
+        if (this.spriteCycle >= this.image.totalSpriteCycles) {
             this.spriteCycle = 0;
         } else {
-            this.spriteCycle += this.spriteCycleDuration;
         }
         return Math.floor(this.spriteCycle) * this.width;
     }
@@ -161,7 +161,7 @@ function Bullet(initPack) {
 
     Entity.call(this, initPack, Img.bulletSprite);
 
-    this.spriteCycleDuration = .3;
+    this.spriteCycleDuration = 300;
 
     if (this.parent === selfId) {
         // starts shake when bullet spawned if self shot it
@@ -216,7 +216,7 @@ Objective.list = {};
 function Powerup(initPack) {
     Entity.call(this, initPack, Img.pwrChestSprite);
 
-    this.spriteCycleDuration = .3;
+    this.spriteCycleDuration = 300;
 
     this.drawSelf = function() {
         this.updatePos();
@@ -641,6 +641,7 @@ document.onmousemove = function(event) {
 }
 
 var onIntroScreen = true;
+setUpIntroSprites();
 function gameFunc() {
     // if connection made, run game loop, otherwise, do introAnimation
     if(onIntroScreen){
@@ -651,4 +652,4 @@ function gameFunc() {
         partTime++;
     }
 }
-var intervalId = setInterval(gameFunc, 40);
+var intervalId = setInterval(gameFunc, 1000 / framerate);

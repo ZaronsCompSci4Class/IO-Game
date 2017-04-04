@@ -21,9 +21,9 @@ let SOCKET_LIST = {};
 // Player img width and height
 const PimgW = 9 / 2;
 const PimgH = 11 / 2;
-const mapWidth = 1024;
-const mapHeight = 1024;
-const pixelsPerCU = 8;
+const mapWidth = 2048;
+const mapHeight = 2048;
+const pixelsPerCU = 2;
 let newEntities = false;
 const framerate = 25;
 
@@ -79,7 +79,7 @@ Entity.prototype.getCollisionWithMap = function(x, y, str) {
         for (y of mapCollisionPoints.y) {
             const xCU = Math.floor(x / pixelsPerCU);
             const yCU = Math.floor(y / pixelsPerCU);
-            const index = yCU * 128 + xCU;
+            const index = yCU * (mapHeight / pixelsPerCU) + xCU;
             if (collisionText.charAt(index) === str) {
                 return true;
             }
