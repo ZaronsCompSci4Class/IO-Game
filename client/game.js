@@ -106,7 +106,7 @@ function Player(initPack) {
     }
 
     this.drawName = function() {
-        ctxSmooth.fillText(this.name, this.relativeX, this.relativeY);
+        ctxSmooth.fillText(this.name, this.relativeX, this.relativeY - this.height * .75);
         ctxSmooth.fillStyle = "green";
     }
 

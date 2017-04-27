@@ -46,7 +46,7 @@ function introAnimation() {
 
     // moves image according to time left in animation
     ctx.drawImage(bg, 0, yOffset, bg.width, yOffset + 90, 0, 0, bg.width, canvasHeight / 4);
-    drawRep(IntroScreen.reptilian);
+    drawRep(IntroScreen.reptilian, yOffset);
     ctx.drawImage(trees, 0, yOffset, bg.width, yOffset + 90, 0, 0, bg.width, canvasHeight / 4);
     drawZaron(IntroScreen.zaron);
     ctx.drawImage(dark, 0, yOffset, bg.width, yOffset + 90, 0, 0, bg.width, canvasHeight / 4);
@@ -54,10 +54,11 @@ function introAnimation() {
     return !fallingMatrix.endAnimation;
 }
 
-function drawRep(reptilian) {
-    var REP_SCALE = 2;
+function drawRep(reptilian, yOffset) {
+    var REP_SCALE = 1.75;
     var repX = canvasWidth / 8 - reptilian.width * REP_SCALE / 2;
-    var repY = 20;
+    var repY = 0;//((canvasHeight - reptilian.height * REP_SCALE) / 4) * (55 / 75) - yOffset;
+    console.log(repY);
     var repCycleMod = reptilian.getCycleMod();
     ctx.drawImage(reptilian.image, repCycleMod, 0, reptilian.width, reptilian.height / 4, repX, repY,
         reptilian.width * REP_SCALE, reptilian.height * REP_SCALE / 4);
@@ -65,7 +66,7 @@ function drawRep(reptilian) {
 
 function drawZaron(zaron) {
     var zaronX = canvasWidth / 8 - zaron.width / 2;
-    var zaronY = 55;
+    var zaronY = 30;
     var zaronCycleMod = zaron.getCycleMod();
     ctx.drawImage(zaron.image, zaronCycleMod, 0, zaron.width, zaron.height / 4, zaronX, zaronY,
         zaron.width, zaron.height / 4);
