@@ -3,7 +3,6 @@
 const express = require(`express`);
 const app = express();
 const serv = require(`http`).Server(app);
-const Events = new require(`events`).EventEmitter();
 
 app.get(`/`, function(req, res) {
     res.sendFile(`${__dirname}/client/index.html`);
@@ -288,6 +287,11 @@ Player.prototype.updateSpd = function() {
         this.spdY = 0;
     }
 
+    if(this.spdX !== 0 && this.spdY !== 0) {
+        this.spdX *= Math.SQRT2;
+        this.spdY *= Math.SQRT2;
+    }
+
     // counters movement and sets animCounter = to it
     if (this.spdY !== 0 || this.spdX !== 0) {
         this.animCounter += 0.2;
@@ -375,7 +379,7 @@ Player.onConnect = function(socket, name) {
             PlayerPowerups[player.pwrId].applyPwr();
         }
     });
-    
+
     socket.on('gtest', function() {
         player.test();
     });
@@ -421,7 +425,7 @@ Player.onDisconnect = function(socket) {
 }
 Player.update = function() {
     //console.log(this.timer+" "+time);
-   
+
     if(this.timer>time+3){
         this.removePack();
     }
