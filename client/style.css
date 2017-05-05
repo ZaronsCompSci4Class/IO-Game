@@ -23,9 +23,9 @@ input#signDiv-username {
     height: 5%;
     background: #042941;
     border: 0;
-    border-bottom: 1vmax solid #345e79;
+    border-bottom: 1vh solid #345e79;
     color: white;
-    font-size: 2vmax;
+    font-size: 2vh;
 
     /* to center element */
     left: 50%;
@@ -156,7 +156,10 @@ canvas#autorendered-canvas {
     width: 100%;
 }
 
-span.nameTag {
+#score {
     position: absolute;
-    color: white;
+    top: 94%;
+    left: 74.5%;
+    color: #DFA357;
+    font-size: 3vh;
 }
