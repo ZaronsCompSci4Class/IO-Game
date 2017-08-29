@@ -533,7 +533,6 @@ function draw() {
     for (var i in Bullet.list) {
         Bullet.list[i].draw();
     }
-    drawDarkness();
 }
 
 var drawMap = function(part) {
@@ -546,26 +545,6 @@ var drawMap = function(part) {
 
 var drawScore = function() {
     scoreText.nodeValue = Player.list[selfId].score;
-}
-
-function drawDarkness() {
-    // draw circle around player
-    var player = Player.list[selfId];
-    var x = player.relativeX;
-    var y = player.relativeY;
-    var boxSideLength = 100;
-
-    var gradient = ctx.createRadialGradient(x, y, 25, x, y, boxSideLength / Math.SQRT2);
-    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 1)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(x - boxSideLength / 2, y - boxSideLength / 2, boxSideLength, boxSideLength);
-
-    // draw map darkness layer in 4 sections
-    var darkness = Img.map.darkness;
-    var mapX = canvasWidth / 2 - player.x;
-    var mapY = canvasHeight / 2 - player.y;
-    ctx.drawImage(darkness, 0, 0, mapSize, player.y - boxSideLength / 2, mapX, mapY, mapSize, player.y - boxSideLength / 2);
 }
 
 document.onkeydown = function(event) {
