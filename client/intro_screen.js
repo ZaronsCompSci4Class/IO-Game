@@ -57,8 +57,7 @@ function introAnimation() {
 function drawRep(reptilian, yOffset) {
     var REP_SCALE = 1.75;
     var repX = canvasWidth / 8 - reptilian.width * REP_SCALE / 2;
-    var repY = 0;//((canvasHeight - reptilian.height * REP_SCALE) / 4) * (55 / 75) - yOffset;
-    console.log(repY);
+    var repY = 45 - reptilian.height * REP_SCALE / 4 - yOffset;
     var repCycleMod = reptilian.getCycleMod();
     ctx.drawImage(reptilian.image, repCycleMod, 0, reptilian.width, reptilian.height / 4, repX, repY,
         reptilian.width * REP_SCALE, reptilian.height * REP_SCALE / 4);

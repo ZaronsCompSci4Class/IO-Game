@@ -27,11 +27,10 @@ function Entity(initPack, imgParam) {
     }
 
     this.getCycleMod = function() {
-        this.spriteCycle += 1000 / (framerate *  this.spriteCycleDuration);
+        this.spriteCycle += 1000 / (framerate * this.spriteCycleDuration);
         if (this.spriteCycle >= this.image.totalSpriteCycles) {
             this.spriteCycle = 0;
-        } else {
-        }
+        } else {}
         return Math.floor(this.spriteCycle) * this.width;
     }
 
@@ -78,19 +77,19 @@ function Player(initPack) {
             var imgPicker = Img.playerSprite;
 
         ctx.drawImage(imgPicker, moveMod * this.width, directionMod * this.height, this.width, this.height, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
-        if(this.inWater){
+        if (this.inWater) {
             this.drawWaterEffects(moveMod, directionMod);
         }
     }
 
-    this.drawWaterEffects = function(moveMod, directionMod){
-        if(this.isZombie){
+    this.drawWaterEffects = function(moveMod, directionMod) {
+        if (this.isZombie) {
             var img = Img.playerSprite2.water;
-            ctx.drawImage(img, moveMod * img.width, directionMod * img.height, img.width, img.height,  this.relativeX, this.relativeX, img.width, img.height);
-        }else{
+            ctx.drawImage(img, moveMod * img.width, directionMod * img.height, img.width, img.height, this.relativeX, this.relativeX, img.width, img.height);
+        } else {
             var img = Img.playerSprite.water;
-            console.log(img+" "+img.width + " " + img.height + " " + this.relativeX + " " + this.relativeY + " " + directionMod * img.height + " " + moveMod * img.height);
-            ctx.drawImage(img, moveMod * img.width, directionMod * img.height, img.width, img.height,  this.relativeX, this.relativeX, img.width, img.height);
+            //console.log(img+" "+img.width + " " + img.height + " " + this.relativeX + " " + this.relativeY + " " + directionMod * img.height + " " + moveMod * img.height);
+            ctx.drawImage(img, moveMod * img.width, directionMod * img.height, img.width, img.height, this.relativeX, this.relativeX, img.width, img.height);
         }
     }
 
@@ -119,34 +118,34 @@ function Player(initPack) {
         this.drawName();
 
         if (this.id === selfId && !this.isZombie) {
-            
+
 
             ////////drawing powerup
             this.pwrCounter = 0;
             this.pwrXMod;
             this.pwrYMod;
-            for(var i in this.activeMods){
+            for (var i in this.activeMods) {
                 this.pwrCounter++;
-                if(this.activeMods[i] === "bulletFrenzy"){
+                if (this.activeMods[i] === "bulletFrenzy") {
                     this.pwrXMod = 0;
                     this.pwrYMod = 0;
-                }else if(this.activeMods[i] === "oneHitKill"){
+                } else if (this.activeMods[i] === "oneHitKill") {
                     this.pwrXMod = Img.pwrSprite / 3 * 2;
                     this.pwrYMod = Img.pwrSprite / 2;
-                }else if(this.activeMods[i] === "speedBurst"){
+                } else if (this.activeMods[i] === "speedBurst") {
                     this.pwrXMod = Img.pwrSprite / 3;
                     this.pwrYMod = Img.pwrSprite / 2;
-                }else{
+                } else {
                     console.log("no active mods");
                 }
             }
             ///Isn't going wthorugh rin
             while (this.pwrCounter >= 1) {
-                ctx.fillRect(this.relativeX - hpWidth / 2-(this.pwrCounter*5), this.relativeY - 60, 4, 4);
+                ctx.fillRect(this.relativeX - hpWidth / 2 - (this.pwrCounter * 5), this.relativeY - 60, 4, 4);
                 //ctx.drawImage(Img.pwrSprite, this.pwrXMod, this.pwrYMod, 210 / 3, 190 / 2, ctxUi.miniX - (210 / 3) * this.pwrCounter, ctxUi.miniY, 210 / 3, 190 / 2);
                 console.log("belly");
                 //console.log("x " + ctxMiniX - (Img.pwrSprite.width / 3) * this.numOfPwrs);
-            this.pwrCounter--;
+                this.pwrCounter--;
             }
         }
     }
@@ -168,9 +167,9 @@ function Bullet(initPack) {
         screenShake.start(this.angle);
 
         // handle bulletSound triggering
-        if(bulletSound.playing){
+        if (bulletSound.playing) {
             bulletSound.snapToStart();
-        }else{
+        } else {
             bulletSound.play();
         }
     }
@@ -221,7 +220,7 @@ function Powerup(initPack) {
     this.drawSelf = function() {
         this.updatePos();
         var cycleMod = this.getCycleMod();
-        if(!this.pickedUp)
+        if (!this.pickedUp)
             ctx.drawImage(this.image, cycleMod, 0, this.width, this.height, this.relativeX - this.width / 2, this.relativeY - this.height / 2, this.width, this.height);
 
     }
@@ -381,8 +380,28 @@ function translateAll(dx, dy) {
     ctxSmooth.translate(dx, dy);
 }
 
+UI.draw = function() {
+    UI.miniMap.draw();
+    UI.drawAmmoBar();
+    UI.drawTime();
+}
+
 UI.miniMap.draw = function() {
     ctxUi.drawImage(Img.miniMap, ctxUi.miniX, ctxUi.miniY, ctxUi.miniSize, ctxUi.miniSize);
+}
+
+UI.drawAmmoBar = function() {
+    var player = Player.list[selfId];
+    // draw reload bar
+    if (player.reloading) {
+        ctxUi.fillStyle = 'red';
+    } else {
+        ctxUi.fillStyle = '#93FFCD';
+    }
+    var windowHeight = window.innerHeight * screenScaleFactor;
+    var topDisplacement = windowHeight * 0.58;
+    var maxBarHeight = windowHeight * 0.42;
+    ctxUi.fillRect(534, topDisplacement + maxBarHeight * (1 - player.bullets / player.MAX_BULLETS), 30, maxBarHeight * player.bullets / player.MAX_BULLETS);
 }
 
 UI.drawTime = function() {
@@ -420,20 +439,6 @@ UI.drawTime = function() {
     ctxUi.font = '20px Arial';
     ctxUi.fillStyle = 'green';
     ctxUi.fillText(roundInfo, 200, 30);
-}
-
-UI.draw = function() {
-    var player = Player.list[selfId];
-    // draw reload bar
-    if (player.reloading) {
-        ctxUi.fillStyle = 'red';
-    } else {
-        ctxUi.fillStyle = 'green';
-    }
-    ctxUi.fillRect(canvasWidth * .98, canvasHeight * .025 + (player.ammo.MAX_BULLETS - player.ammo.bullets) * canvasHeight / 21, canvasWidth * .015, player.ammo.bullets / player.ammo.MAX_BULLETS * canvasHeight * .95);
-
-    UI.miniMap.draw();
-    UI.drawTime();
 }
 
 socket.on('roundInfo', function(data) {
@@ -528,7 +533,6 @@ function draw() {
     for (var i in Bullet.list) {
         Bullet.list[i].draw();
     }
-
 }
 
 var drawMap = function(part) {
@@ -540,9 +544,7 @@ var drawMap = function(part) {
 }
 
 var drawScore = function() {
-    ctxUi.font = '30px Arial';
-    ctxUi.fillStyle = 'green';
-    ctxUi.fillText(Player.list[selfId].score, 0, 30);
+    scoreText.nodeValue = Player.list[selfId].score;
 }
 
 document.onkeydown = function(event) {
@@ -642,11 +644,12 @@ document.onmousemove = function(event) {
 
 var onIntroScreen = true;
 setUpIntroSprites();
+
 function gameFunc() {
     // if connection made, run game loop, otherwise, do introAnimation
-    if(onIntroScreen){
+    if (onIntroScreen) {
         onIntroScreen = introAnimation();
-    }else{
+    } else {
         update();
         draw();
         partTime++;

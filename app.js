@@ -118,12 +118,14 @@ function Player(param) {
     this.maxPPS = 30;
     this.pointTimer = 0;
 
-    const MAX_BULLETS = 20;
-    this.ammo = {
-        MAX_BULLETS: MAX_BULLETS,
-        bullets: MAX_BULLETS,
-        mags: 1,
-    };
+    this.ammo = (function() {
+        const MAX_BULLETS = 20;
+        return {
+            MAX_BULLETS: MAX_BULLETS,
+            bullets: MAX_BULLETS,
+            mags: 1,
+        };
+    })();
 
     //Creates an array of active powerups, stores them as strings so they can be sent to client
     this.activeMods = {};
@@ -206,9 +208,9 @@ Player.prototype.reload = function(state) {
 Player.prototype.update = function() {
     this.updateSpd();
     this.updatePosition();
-    if(sectionTime-this.pointTimer > 0){
+    if (sectionTime - this.pointTimer > 0) {
         this.updateScore();
-    	this.pointTimer = sectionTime;
+        this.pointTimer = sectionTime;
     }
     if (!this.isZombie) {
         // if has a magazine and ammo inside, and more than timeBetweenBullets time has passed after the last shot, shoot a new Bullet
@@ -256,13 +258,13 @@ Player.prototype.waterEffects = function() {
 
 Player.prototype.updateScore = function() {
     //increases alive players score only while the round is going
-    if(!this.isZombie && roundStarted && roundState === `started`){
+    if (!this.isZombie && roundStarted && roundState === `started`) {
         //the score given per second will be based on how long into the night the player survives
-        this.score+=(Math.floor)(this.maxPPS*(sectionTime/sectionDuration.started));
+        this.score += (Math.floor)(this.maxPPS * (sectionTime / sectionDuration.started));
     }
     //decreases score while players are zombies depending on how many zombies there are and player's total score
-    if(this.isZombie && roundStarted && roundState === `started` && this.score<=0){
-        this.score+=(Math.floor)(this.maxPPS*(sectionTime/sectionDuration.started));
+    if (this.isZombie && roundStarted && roundState === `started` && this.score <= 0) {
+        this.score += (Math.floor)(this.maxPPS * (sectionTime / sectionDuration.started));
     }
 }
 
@@ -287,15 +289,15 @@ Player.prototype.updateSpd = function() {
         this.spdY = 0;
     }
 
-    if(this.spdX !== 0 && this.spdY !== 0) {
-        this.spdX *= Math.SQRT2;
-        this.spdY *= Math.SQRT2;
+    if (this.spdX !== 0 && this.spdY !== 0) {
+        this.spdX /= Math.SQRT2;
+        this.spdY /= Math.SQRT2;
     }
 
     // counters movement and sets animCounter = to it
     if (this.spdY !== 0 || this.spdX !== 0) {
         this.animCounter += 0.2;
-    }else{
+    } else {
         this.animCounter = 0; // returns to starting position when not moving
     }
     if (this.animCounter > 4) {
@@ -308,28 +310,17 @@ Player.prototype.updateSkins = function(skin) {
 };
 
 // method bound to g to test things quickly
-Player.prototype.test = function(){
+Player.prototype.test = function() {
 
 }
 
 Player.prototype.getInitPack = function() {
-    return {
-        id: this.id,
-        x: this.x,
-        y: this.y,
+    return Object.assign({
         number: this.number,
-        hp: this.hp,
         hpMax: this.hpMax,
-        score: this.score,
-        map: this.map,
-        mouseAngle: this.mouseAngle,
-        animCounter: this.animCounter,
-        isZombie: this.isZombie,
         name: this.name,
-        skins: this.skins,
-        bCounter: this.ammo.bullets,
-        activeMods: this.activeMods,
-    };
+        MAX_BULLETS: this.ammo.MAX_BULLETS,
+    }, this.getUpdatePack());
 };
 Player.prototype.getUpdatePack = function() {
     return {
@@ -343,7 +334,7 @@ Player.prototype.getUpdatePack = function() {
         isZombie: this.isZombie,
         skins: this.skins,
         underWallLayer: this.isUnderWallLayer(),
-        ammo: this.ammo,
+        bullets: this.ammo.bullets,
         activeMods: this.activeMods,
         reloading: this.reloading,
         inWater: this.state.inWater,
@@ -426,7 +417,7 @@ Player.onDisconnect = function(socket) {
 Player.update = function() {
     //console.log(this.timer+" "+time);
 
-    if(this.timer>time+3){
+    if (this.timer > time + 3) {
         this.removePack();
     }
     const pack = {};
@@ -480,7 +471,7 @@ Bullet.prototype.checkForCollision = function(x, y) {
         }
     }
 
-//checks if its colliding with a player
+    //checks if its colliding with a player
     for (let i in Player.list) {
         const p = Player.list[i];
         if (this.getDistance(p) < 32 && this.parent !== p.id && p.isZombie) {
@@ -672,7 +663,7 @@ Powerup.create = function(param) {
 Powerup.prototype.update = function() {
     if (this.pickedUp && !this.toRemove) {
         this.updateAsPlayerAttribute();
-    } else if(!this.pickedUp && !this.toRemove){
+    } else if (!this.pickedUp && !this.toRemove) {
         this.updateAsMapObject();
     }
 };
@@ -709,7 +700,7 @@ Powerup.prototype.addPowerupToPlayer = function() {
     this.parent.score += 50;
     this.pickedUp = true;
     this.parent.pwrId = this.id;
-    console.log("You picked up "+ this.type);
+    console.log("You picked up " + this.type);
 };
 
 Powerup.prototype.applyPwr = function() {

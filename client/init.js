@@ -45,6 +45,10 @@ var sb3 = document.getElementById("shop-button3");
 var sb4 = document.getElementById("shop-button4");
 var sb5 = document.getElementById("shop-button5");
 
+// ui
+var scoreText = document.createTextNode("0");
+document.getElementById("score").appendChild(scoreText);
+
 //Sign-in
 signDivUsername.focus();
 var signIn = function() {
@@ -171,6 +175,8 @@ Img.map.floor = new Image();
 Img.map.floor.src = '/client/img/floor.png';
 Img.map.walls = new Image();
 Img.map.walls.src = '/client/img/walls.png';
+Img.map.darkness = new Image();
+Img.map.darkness.src = '/client/img/darkness.png';
 var mapSize = Img.map.floor.width;
 
 // sounds
