@@ -1,13 +1,11 @@
 var IntroScreen = {
     Img: {
-        signin_background: new Image(),
-        dark: new Image(),
-        trees: new Image(),
+        signin_background: document.getElementById("intro_bg"),
+        dark: document.getElementById("intro_dark"),
+        trees: document.getElementById("intro_trees"),
     },
 };
-IntroScreen.Img.signin_background.src = "/client/img/intro_screen/background_layer.png";
-IntroScreen.Img.dark.src = "/client/img/intro_screen/dark.png";
-IntroScreen.Img.trees.src = "/client/img/intro_screen/trees.png";
+
 ctx.scale(4, 4);
 
 var fallingTimer = 3000;
