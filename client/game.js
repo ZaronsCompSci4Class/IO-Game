@@ -550,24 +550,24 @@ var drawScore = function() {
 document.onkeydown = function(event) {
     if (event.keyCode === 68) //d
         socket.emit('keyPress', {
-        inputId: 'right',
-        state: true
-    });
+            inputId: 'right',
+            state: true
+        });
     else if (event.keyCode === 83) //s
         socket.emit('keyPress', {
-        inputId: 'down',
-        state: true
-    });
+            inputId: 'down',
+            state: true
+        });
     else if (event.keyCode === 65) //a
         socket.emit('keyPress', {
-        inputId: 'left',
-        state: true
-    });
+            inputId: 'left',
+            state: true
+        });
     else if (event.keyCode === 87) // w
         socket.emit('keyPress', {
-        inputId: 'up',
-        state: true
-    });
+            inputId: 'up',
+            state: true
+        });
     if (event.keyCode === 82) { // reload r
         socket.emit('keyPress', {
             inputId: 'reload',
@@ -590,24 +590,24 @@ document.onkeydown = function(event) {
 document.onkeyup = function(event) {
     if (event.keyCode === 68) //d
         socket.emit('keyPress', {
-        inputId: 'right',
-        state: false
-    });
+            inputId: 'right',
+            state: false
+        });
     else if (event.keyCode === 83) //s
         socket.emit('keyPress', {
-        inputId: 'down',
-        state: false
-    });
+            inputId: 'down',
+            state: false
+        });
     else if (event.keyCode === 65) //a
         socket.emit('keyPress', {
-        inputId: 'left',
-        state: false
-    });
+            inputId: 'left',
+            state: false
+        });
     else if (event.keyCode === 87) // w
         socket.emit('keyPress', {
-        inputId: 'up',
-        state: false
-    });
+            inputId: 'up',
+            state: false
+        });
     else if (event.keyCode === 77) { // m
         if (miniMapHolder.style.display != 'none') {
             miniMapHolder.style.display = 'none';
@@ -642,17 +642,20 @@ document.onmousemove = function(event) {
     });
 }
 
-var onIntroScreen = true;
-setUpIntroSprites();
 
-function gameFunc() {
-    // if connection made, run game loop, otherwise, do introAnimation
-    if (onIntroScreen) {
-        onIntroScreen = introAnimation();
-    } else {
-        update();
-        draw();
-        partTime++;
+window.onload = function() {
+    var onIntroScreen = true;
+    setUpIntroSprites();
+
+    function gameFunc() {
+        // if connection made, run game loop, otherwise, do introAnimation
+        if (onIntroScreen) {
+            onIntroScreen = introAnimation();
+        } else {
+            update();
+            draw();
+            partTime++;
+        }
     }
-}
-var intervalId = setInterval(gameFunc, 1000 / framerate);
+    var intervalId = setInterval(gameFunc, 1000 / framerate);
+};
