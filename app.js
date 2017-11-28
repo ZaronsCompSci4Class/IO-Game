@@ -447,8 +447,8 @@ Bullet.prototype.checkForCollision = function(x, y) {
         return true;
     }
 //checks if the a 5x5 hitbox around is colliding with the walls
-    for (let i = -1; i < 3; i++) {
-        for (let j = -1; j < 3; j++) {
+    for (let i = -2; i < 2; i++) {
+        for (let j = -2; j < 2; j++) {
             if (this.getCollisionWithMap(x + i, y + j, `1`)) {
                 return true;
             }
